@@ -5,6 +5,17 @@ import { ProductOrmEntity } from "../../database/entities/ProductOrmEntity";
 
 export class TypeOrmProductRepository implements IProductRepository {
     constructor(private readonly ormRepository: Repository<ProductOrmEntity>) { }
+   async findAndCount(page: number, limit: number): Promise<{ products: Product[]; totalCount: number; }> {
+        const [found,totalCount]=await this.ormRepository.findAndCount({
+            skip:(page-1)*limit,
+            take:limit,
+            order:{createdAt:"DESC"}
+        });
+        return{
+            products:found.map(orm=>this.toDomain(orm)),
+            totalCount
+        }
+    }
 
     async save(product: Product): Promise<Product> {
         const ormEntity = this.toOrm(product);

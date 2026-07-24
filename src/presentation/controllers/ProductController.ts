@@ -4,6 +4,7 @@ import { UpdateProductUseCase } from "../../application/use-cases/product/Update
 import { DeleteProductUseCase } from "../../application/use-cases/product/DeleteProductUseCase";
 import { GetProductByIdUseCase } from "../../application/use-cases/product/GetProductByIdUseCase";
 import { GetAllProductUseCase } from "../../application/use-cases/product/GetAllProductUseCase";
+import { GetProductsPaginatedUseCase } from "../../application/use-cases/product/GetProductsPaginatedUseCase";
 
 export class ProductController {
     constructor(
@@ -11,7 +12,8 @@ export class ProductController {
         private readonly updateProductUseCase: UpdateProductUseCase,
         private readonly deleteProductUseCase: DeleteProductUseCase,
         private readonly getProductByIdUseCase: GetProductByIdUseCase,
-        private readonly getAllProductUseCase: GetAllProductUseCase
+        private readonly getAllProductUseCase: GetAllProductUseCase,
+        private readonly getProductsPaginatedUseCase:GetProductsPaginatedUseCase
     ) { }
 
     async create(req: Request, res: Response): Promise<void> {
@@ -150,4 +152,26 @@ export class ProductController {
             });
         }
     }
+    async getPaginated(req: Request, res: Response): Promise<void> {
+        try {
+            // Lấy dữ liệu page và limit từ query string (VD: ?page=2&limit=5)
+            const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+            const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
+
+            // Khởi tạo và thực thi Use Case
+            const result = await this.getProductsPaginatedUseCase.execute(page, limit);
+
+            res.status(200).json({
+                success: true,
+                message: "Lấy danh sách phân trang sản phẩm thành công.",
+                data: result
+            });
+        } catch (error: any) {
+            res.status(400).json({
+                success: false,
+                message: error.message || "Lỗi phân trang sản phẩm."
+            });
+        }
+    }
+
 }

@@ -8,4 +8,5 @@ export interface IProductRepository {
     delete(id: string): Promise<void>;
     findAll(): Promise<Product[]>;
     findByCategoryId(categoryId: string): Promise<Product[]>;
+    findAndCount(page:number,limit:number):Promise<{products:Product[],totalCount:number}>
 }
