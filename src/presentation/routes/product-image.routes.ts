@@ -9,6 +9,7 @@ import { CreateProductImageUseCase } from "../../application/use-cases/product-i
 import { DeleteProductImageUseCase } from "../../application/use-cases/product-image/DeleteProductImageUseCase";
 import { ProductImageController } from "../controllers/ProductImageController";
 import { upload } from "../middlewares/upload";
+import { getAllProductImageUseCase } from "../../application/use-cases/product-image/getAllProductImageUseCase";
 
 const productImageRouterInstance = Router();
 
@@ -23,14 +24,16 @@ export const productImageRouter = (): Router => {
 
     const createProductImageUseCase = new CreateProductImageUseCase(productImageRepository, productRepository);
     const deleteProductImageUseCase = new DeleteProductImageUseCase(productImageRepository);
-
+    const GetAllProductImageUseCase = new getAllProductImageUseCase(productImageRepository)
     const productImageController = new ProductImageController(
         createProductImageUseCase,
         deleteProductImageUseCase,
+        GetAllProductImageUseCase,
         cloudinaryService
     );
 
-    productImageRouterInstance.post("/", upload.single("image"), (req, res) => productImageController.create(req, res));
+    productImageRouterInstance.post("/", upload.array("images", 10), (req, res) => productImageController.create(req, res));
+    productImageRouterInstance.get("/", (req, res) => productImageController.getAll(req, res));
     productImageRouterInstance.delete("/:id", (req, res) => productImageController.delete(req, res));
 
     return productImageRouterInstance;

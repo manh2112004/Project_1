@@ -5,7 +5,10 @@ import { ProductImageOrmEntity } from "../../database/entities/ProductImageOrmEn
 
 export class TypeOrmProductImageRepository implements IProductImageRepository {
     constructor(private readonly ormRepository: Repository<ProductImageOrmEntity>) { }
-
+   async findAll(): Promise<ProductImage[]> {
+        const found=await this.ormRepository.find();
+        return found.map(orm=>this.toDomain(orm))
+    }
     async save(productImage: ProductImage): Promise<ProductImage> {
         const ormEntity = this.toOrm(productImage);
         const savedOrm = await this.ormRepository.save(ormEntity);

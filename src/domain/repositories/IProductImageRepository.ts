@@ -5,4 +5,5 @@ export interface IProductImageRepository {
     findById(id: string): Promise<ProductImage | null>;
     findByProductId(productId: string): Promise<ProductImage[]>;
     delete(id: string): Promise<void>;
+    findAll():Promise<ProductImage[]>
 }
