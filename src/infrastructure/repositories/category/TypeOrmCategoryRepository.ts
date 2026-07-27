@@ -1,10 +1,25 @@
-import { Repository } from 'typeorm';
-import { Category } from '../../../domain/entities/Category';
-import { ICategoryRepository } from '../../../domain/repositories/ICategoryRepository';
-import { CategoryOrmEntity } from '../../database/entities/CategoryOrmEntity';
+import { Repository } from "typeorm";
+import { Category } from "../../../domain/entities/Category";
+import { ICategoryRepository } from "../../../domain/repositories/ICategoryRepository";
+import { CategoryOrmEntity } from "../../database/entities/CategoryOrmEntity";
 
 export class TypeOrmCategoryRepository implements ICategoryRepository {
-  constructor(private readonly ormRepository: Repository<CategoryOrmEntity>) { }
+  constructor(private readonly ormRepository: Repository<CategoryOrmEntity>) {}
+  async findAndCount(
+    page: number,
+    limit: number,
+  ): Promise<{ categories: Category[]; totalCount: number }> {
+    const [found, totalCount] = await this.ormRepository.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: "DESC" },
+    });
+    return {
+      categories: found.map((orm) => this.toDomain(orm)),
+      totalCount,
+    };
+  }
+
   async save(category: Category): Promise<Category> {
     const ormEntity = this.toOrm(category);
     const savedOrm = await this.ormRepository.save(ormEntity);
@@ -53,11 +68,10 @@ export class TypeOrmCategoryRepository implements ICategoryRepository {
     }
     //gán cột id
     orm.parentId = domain.parentId;
-    //gán đối tượng quan hệ 
+    //gán đối tượng quan hệ
     if (domain.parentId) {
       orm.parent = { id: domain.parentId } as CategoryOrmEntity;
-    }
-    else {
+    } else {
       orm.parent = null as any;
     }
     orm.name = domain.name;

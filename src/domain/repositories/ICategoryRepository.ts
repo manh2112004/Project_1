@@ -1,4 +1,4 @@
-import { Category } from '../entities/Category';
+import { Category } from "../entities/Category";
 
 export interface ICategoryRepository {
   save(category: Category): Promise<Category>;
@@ -6,5 +6,9 @@ export interface ICategoryRepository {
   findBySlug(slug: string): Promise<Category | null>;
   findByName(name: string): Promise<Category | null>;
   delete(id: string): Promise<void>;
-  findAll():Promise<Category[]>;
+  findAll(): Promise<Category[]>;
+  findAndCount(
+    page: number,
+    limit: number,
+  ): Promise<{ categories: Category[]; totalCount: number }>;
 }
