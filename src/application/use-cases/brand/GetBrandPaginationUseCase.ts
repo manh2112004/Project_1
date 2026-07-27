@@ -12,12 +12,17 @@ export interface PaginatedBrandsResponse {
 }
 export class GetBrandsPaginatedUseCase {
   constructor(private readonly brandRepository: IBrandRepository) {}
-  async execute(page: number, limit: number): Promise<PaginatedBrandsResponse> {
+  async execute(
+    page: number,
+    limit: number,
+    search?: string,
+  ): Promise<PaginatedBrandsResponse> {
     const validPage = page > 0 ? page : 1;
     const validLimit = limit > 0 ? limit : 1;
     const { brands, totalCount } = await this.brandRepository.findAndCount(
       validPage,
       validLimit,
+      search,
     );
     const totalPages = Math.ceil(totalCount / validLimit);
     return {

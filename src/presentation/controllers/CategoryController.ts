@@ -14,7 +14,7 @@ export class CategoryController {
     private readonly getCategoryByIdUseCase: GetCategoryByIdUseCase,
     private readonly getAllCategoriesUseCase: GetAllCategoryUseCase,
     private readonly getCategoriesPaginatedUseCase: GetCategoriesPaginatedUseCase,
-  ) {}
+  ) { }
 
   async create(req: Request, res: Response): Promise<void> {
     try {
@@ -118,10 +118,12 @@ export class CategoryController {
       const limit = req.query.limit
         ? parseInt(req.query.limit as string, 10)
         : 10;
+      const search = req.query.search as string | undefined;
       // Khởi tạo và thực thi Use Case
       const result = await this.getCategoriesPaginatedUseCase.execute(
         page,
         limit,
+        search,
       );
 
       res.status(200).json({

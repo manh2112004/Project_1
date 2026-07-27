@@ -8,12 +8,20 @@ export class TypeOrmCategoryRepository implements ICategoryRepository {
   async findAndCount(
     page: number,
     limit: number,
+    search?: string,
   ): Promise<{ categories: Category[]; totalCount: number }> {
-    const [found, totalCount] = await this.ormRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { createdAt: "DESC" },
-    });
+    const queryBuilder = this.ormRepository.createQueryBuilder("category");
+    if (search) {
+      queryBuilder.where(
+        "(unaccent(category.name) ILIKE unaccent(:search) OR unaccent(category.slug) ILIKE unaccent(:search))",
+        { search: `%${search}%` },
+      );
+    }
+    const [found, totalCount] = await queryBuilder
+      .orderBy("category.createdAt", "DESC")
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount(); // Hàm này tự động chạy cả SELECT và COUNT trong DB
     return {
       categories: found.map((orm) => this.toDomain(orm)),
       totalCount,

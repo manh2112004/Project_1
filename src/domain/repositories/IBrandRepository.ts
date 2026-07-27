@@ -8,5 +8,6 @@ export interface IBrandRepository {
   findAndCount(
     page: number,
     limit: number,
+    search?: string,
   ): Promise<{ brands: Brand[]; totalCount: number }>;
 }

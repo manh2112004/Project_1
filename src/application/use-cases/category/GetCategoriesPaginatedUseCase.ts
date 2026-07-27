@@ -15,11 +15,12 @@ export class GetCategoriesPaginatedUseCase {
   async execute(
     page: number,
     limit: number,
+    search?: string,
   ): Promise<PaginatedCategoriesResponse> {
     const validPage = page > 0 ? page : 1;
     const validLimit = limit > 0 ? limit : 1;
     const { categories, totalCount } =
-      await this.categoryRepository.findAndCount(validPage, validLimit);
+      await this.categoryRepository.findAndCount(validPage, validLimit, search);
     const totalPages = Math.ceil(totalCount / validLimit);
     return {
       categories: categories.map((category) => ({

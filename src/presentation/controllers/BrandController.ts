@@ -15,7 +15,7 @@ export class BrandController {
     private readonly getBrandByIdUseCase: GetBrandByIdUseCase,
     private readonly getAllBrandUseCase: GetAllBrandUseCase,
     private readonly getBrandPaginationUseCase: GetBrandsPaginatedUseCase,
-  ) { }
+  ) {}
   async create(req: Request, res: Response): Promise<void> {
     try {
       const { name, logo, description, isActive } = req.body;
@@ -111,13 +111,16 @@ export class BrandController {
   }
   async getPaginated(req: Request, res: Response) {
     try {
-      const page = req.query.page
-        ? parseInt(req.query.page as string, 10)
-        : 1;
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
       const limit = req.query.limit
         ? parseInt(req.query.limit as string, 10)
         : 10;
-      const result = await this.getBrandPaginationUseCase.execute(page, limit);
+      const search = req.query.search as string | undefined;
+      const result = await this.getBrandPaginationUseCase.execute(
+        page,
+        limit,
+        search,
+      );
       res.status(200).json({
         success: true,
         message: "Lấy danh sách thương hiệu thành công",

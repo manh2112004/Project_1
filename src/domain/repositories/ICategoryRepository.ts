@@ -10,5 +10,6 @@ export interface ICategoryRepository {
   findAndCount(
     page: number,
     limit: number,
+    search?: string,
   ): Promise<{ categories: Category[]; totalCount: number }>;
 }

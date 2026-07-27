@@ -7,12 +7,21 @@ export class TypeOrmBrandRepository implements IBrandRepository {
   async findAndCount(
     page: number,
     limit: number,
+    search?: string,
   ): Promise<{ brands: Brand[]; totalCount: number }> {
-    const [found, totalCount] = await this.ormRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { createdAt: "DESC" },
-    });
+    const queryBuilder = this.ormRepository.createQueryBuilder("brand");
+    if (search) {
+      queryBuilder.where(
+        "(unaccent(brand.name) ILIKE unaccent(:search) OR unaccent(brand.description) ILIKE unaccent(:search))",
+        { search: `%${search}%` },
+      );
+    }
+    const [found, totalCount] = await queryBuilder
+      .orderBy("brand.createdAt", "DESC")
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
     return {
       brands: found.map((orm) => this.toDomain(orm)),
       totalCount,
