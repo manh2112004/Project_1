@@ -18,39 +18,73 @@ import { ProductImageOrmEntity } from "../../infrastructure/database/entities/Pr
 import { TypeOrmProductImageRepository } from "../../infrastructure/repositories/product-image/TypeOrmProductImageRepository";
 import { GetProductsPaginatedUseCase } from "../../application/use-cases/product/GetProductsPaginatedUseCase";
 const productRouterInstance = Router();
-
 export const productRouter = (): Router => {
-    const productOrmRepository = AppDataSource.getRepository(ProductOrmEntity);
-    const inventoryOrmRepository = AppDataSource.getRepository(InventoryOrmEntity)
-    const categoryOrmRepository = AppDataSource.getRepository(CategoryOrmEntity);
-    const brandOrmRepository = AppDataSource.getRepository(BrandOrmEntity);
-    const productImageOrmRepository = AppDataSource.getRepository(ProductImageOrmEntity)
-    const productRepository = new TypeOrmProductRepository(productOrmRepository);
-    const categoryRepository = new TypeOrmCategoryRepository(categoryOrmRepository);
-    const inventoryRepository = new TypeOrmInventoryRepository(inventoryOrmRepository)
-    const brandRepository = new TypeOrmBrandRepository(brandOrmRepository);
-    const productImageRepository = new TypeOrmProductImageRepository(productImageOrmRepository)
-    // 2. Use Cases
-    const createProductUseCase = new CreateProductUseCase(productRepository, categoryRepository, brandRepository);
-    const updateProductUseCase = new UpdateProductUseCase(productRepository, categoryRepository, brandRepository);
-    const deleteProductUseCase = new DeleteProductUseCase(productRepository, inventoryRepository, productImageRepository);
-    const getProductByIdUseCase = new GetProductByIdUseCase(productRepository);
-    const getAllProductUseCase = new GetAllProductUseCase(productRepository);
-    const getProductsPaginatedUseCase = new GetProductsPaginatedUseCase(productRepository);
-    // 3. Controller
-    const productController = new ProductController(
-        createProductUseCase,
-        updateProductUseCase,
-        deleteProductUseCase,
-        getProductByIdUseCase,
-        getAllProductUseCase,
-        getProductsPaginatedUseCase
-    );
-    productRouterInstance.get("/paginated", (req, res) => productController.getPaginated(req, res));
-    productRouterInstance.post("/", (req, res) => productController.create(req, res));
-    productRouterInstance.put("/:id", (req, res) => productController.update(req, res));
-    productRouterInstance.delete("/:id", (req, res) => productController.delete(req, res));
-    productRouterInstance.get("/:id", (req, res) => productController.getById(req, res));
-    productRouterInstance.get("/", (req, res) => productController.getAll(req, res));
-    return productRouterInstance;
+  const productOrmRepository = AppDataSource.getRepository(ProductOrmEntity);
+  const inventoryOrmRepository =
+    AppDataSource.getRepository(InventoryOrmEntity);
+  const categoryOrmRepository = AppDataSource.getRepository(CategoryOrmEntity);
+  const brandOrmRepository = AppDataSource.getRepository(BrandOrmEntity);
+  const productImageOrmRepository = AppDataSource.getRepository(
+    ProductImageOrmEntity,
+  );
+  const productRepository = new TypeOrmProductRepository(productOrmRepository);
+  const categoryRepository = new TypeOrmCategoryRepository(
+    categoryOrmRepository,
+  );
+  const inventoryRepository = new TypeOrmInventoryRepository(
+    inventoryOrmRepository,
+  );
+  const brandRepository = new TypeOrmBrandRepository(brandOrmRepository);
+  const productImageRepository = new TypeOrmProductImageRepository(
+    productImageOrmRepository,
+  );
+  // 2. Use Cases
+  const createProductUseCase = new CreateProductUseCase(
+    productRepository,
+    categoryRepository,
+    brandRepository,
+  );
+  const updateProductUseCase = new UpdateProductUseCase(
+    productRepository,
+    categoryRepository,
+    brandRepository,
+  );
+  const deleteProductUseCase = new DeleteProductUseCase(
+    productRepository,
+    inventoryRepository,
+    productImageRepository,
+  );
+  const getProductByIdUseCase = new GetProductByIdUseCase(productRepository);
+  const getAllProductUseCase = new GetAllProductUseCase(productRepository);
+  const getProductsPaginatedUseCase = new GetProductsPaginatedUseCase(
+    productRepository,
+  );
+  // 3. Controller
+  const productController = new ProductController(
+    createProductUseCase,
+    updateProductUseCase,
+    deleteProductUseCase,
+    getProductByIdUseCase,
+    getAllProductUseCase,
+    getProductsPaginatedUseCase,
+  );
+  productRouterInstance.get("/paginated", (req, res) =>
+    productController.getPaginated(req, res),
+  );
+  productRouterInstance.post("/", (req, res) =>
+    productController.create(req, res),
+  );
+  productRouterInstance.put("/:id", (req, res) =>
+    productController.update(req, res),
+  );
+  productRouterInstance.delete("/:id", (req, res) =>
+    productController.delete(req, res),
+  );
+  productRouterInstance.get("/:id", (req, res) =>
+    productController.getById(req, res),
+  );
+  productRouterInstance.get("/", (req, res) =>
+    productController.getAll(req, res),
+  );
+  return productRouterInstance;
 };

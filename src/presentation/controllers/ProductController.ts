@@ -155,15 +155,20 @@ export class ProductController {
   }
   async getPaginated(req: Request, res: Response): Promise<void> {
     try {
-      const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
-      const limit = req.query.limit
+      let page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+      let limit = req.query.limit
         ? parseInt(req.query.limit as string, 10)
         : 10;
+      const search = req.query.search as string | undefined;
+
+      if (isNaN(page) || page <= 0) page = 1;
+      if (isNaN(limit) || limit <= 0) limit = 10;
 
       // Khởi tạo và thực thi Use Case
       const result = await this.getProductsPaginatedUseCase.execute(
         page,
         limit,
+        search || "",
       );
 
       res.status(200).json({

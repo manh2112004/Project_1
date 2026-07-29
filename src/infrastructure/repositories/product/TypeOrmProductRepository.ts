@@ -4,16 +4,27 @@ import { IProductRepository } from "../../../domain/repositories/IProductReposit
 import { ProductOrmEntity } from "../../database/entities/ProductOrmEntity";
 import { Raw } from "typeorm";
 export class TypeOrmProductRepository implements IProductRepository {
-  constructor(private readonly ormRepository: Repository<ProductOrmEntity>) {}
+  constructor(private readonly ormRepository: Repository<ProductOrmEntity>) { }
   async findAndCount(
     page: number,
     limit: number,
+    search?: string,
   ): Promise<{ products: Product[]; totalCount: number }> {
-    const [found, totalCount] = await this.ormRepository.findAndCount({
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { createdAt: "DESC" },
-    });
+    const queryBuilder = this.ormRepository.createQueryBuilder("product");
+
+    if (search && search.trim().length > 0) {
+      queryBuilder.where(
+        "(unaccent(product.name) ILIKE unaccent(:search) OR unaccent(product.sku) ILIKE unaccent(:search) OR unaccent(product.slug) ILIKE unaccent(:search))",
+        { search: `%${search}%` },
+      );
+    }
+
+    const [found, totalCount] = await queryBuilder
+      .orderBy("product.createdAt", "DESC")
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
     return {
       products: found.map((orm) => this.toDomain(orm)),
       totalCount,

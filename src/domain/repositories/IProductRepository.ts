@@ -11,6 +11,7 @@ export interface IProductRepository {
   findAndCount(
     page: number,
     limit: number,
+    search: string,
   ): Promise<{ products: Product[]; totalCount: number }>;
   searchByNameOrSlug(search?: string): Promise<Product[]>;
 }
