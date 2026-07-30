@@ -6,6 +6,8 @@ import { BrandOrmEntity } from "./entities/BrandOrmEntity";
 import { ProductOrmEntity } from "./entities/ProductOrmEntity";
 import { InventoryOrmEntity } from "./entities/InventoryOrmEntity";
 import { ProductImageOrmEntity } from "./entities/ProductImageOrmEntity";
+import { RoleOrmEntity } from "./entities/RoleOrmEntity";
+import { PermissionOrmEntity } from "./entities/PermissionOrmEntity";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -15,13 +17,15 @@ export const AppDataSource = new DataSource({
   password: config.db.password,
   database: config.db.database,
   // synchronize: true, // Tự động đồng bộ schema khi dev (Chỉ dùng trong môi trường dev)
-  // logging: config.db.logging,
+  logging: config.db.logging,
   entities: [
     CategoryOrmEntity,
     BrandOrmEntity,
     ProductOrmEntity,
     InventoryOrmEntity,
     ProductImageOrmEntity,
+    RoleOrmEntity,
+    PermissionOrmEntity,
   ],
   migrations: [__dirname + "/migrations/*{.ts,.js}"],
   subscribers: [],

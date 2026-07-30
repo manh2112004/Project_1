@@ -9,6 +9,8 @@ import { productImageRouter } from "./presentation/routes/product-image.routes";
 import { config } from "./infrastructure/config/env";
 import { uploadRouter } from "./presentation/routes/upload.routes";
 import { setupSwagger } from "./infrastructure/config/swagger";
+import { roleRouter } from "./presentation/routes/role.routes";
+import { permissionRouter } from "./presentation/routes/permission.routes";
 const startServer = async () => {
   const app = express();
   app.use(cors());
@@ -21,6 +23,8 @@ const startServer = async () => {
   app.use("/api/inventories", inventoryRouter());
   app.use("/api/product-images", productImageRouter());
   app.use("/api/upload", uploadRouter());
+  app.use("/api/roles", roleRouter());
+  app.use("/api/permissions", permissionRouter());
   app.listen(config.port, () => {
     console.log(
       ` Server đang chạy thành công tại: http://localhost:${config.port}`,

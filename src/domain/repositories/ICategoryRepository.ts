@@ -5,7 +5,6 @@ export interface ICategoryRepository {
   findById(id: string): Promise<Category | null>;
   findBySlug(slug: string): Promise<Category | null>;
   findByName(name: string): Promise<Category | null>;
-  delete(id: string): Promise<void>;
   findAll(): Promise<Category[]>;
   findAndCount(
     page: number,
