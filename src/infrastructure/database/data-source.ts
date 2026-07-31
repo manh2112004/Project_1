@@ -8,6 +8,7 @@ import { InventoryOrmEntity } from "./entities/InventoryOrmEntity";
 import { ProductImageOrmEntity } from "./entities/ProductImageOrmEntity";
 import { RoleOrmEntity } from "./entities/RoleOrmEntity";
 import { PermissionOrmEntity } from "./entities/PermissionOrmEntity";
+import { UserOrmEntity } from "./entities/UserOrmEntity";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -26,6 +27,7 @@ export const AppDataSource = new DataSource({
     ProductImageOrmEntity,
     RoleOrmEntity,
     PermissionOrmEntity,
+    UserOrmEntity,
   ],
   migrations: [__dirname + "/migrations/*{.ts,.js}"],
   subscribers: [],

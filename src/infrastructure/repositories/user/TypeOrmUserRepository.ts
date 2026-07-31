@@ -1,0 +1,105 @@
+import { Repository } from "typeorm";
+import { User } from "../../../domain/entities/User";
+import { IUserRepository } from "../../../domain/repositories/IUserRepository";
+import { UserOrmEntity } from "../../database/entities/UserOrmEntity";
+
+export class TypeOrmUserRepository implements IUserRepository {
+  constructor(private readonly ormRepository: Repository<UserOrmEntity>) {}
+
+  async save(user: User): Promise<User> {
+    const ormEntity = this.toOrm(user);
+    const savedOrm = await this.ormRepository.save(ormEntity);
+    return this.toDomain(savedOrm);
+  }
+
+  async findById(id: string): Promise<User | null> {
+    const found = await this.ormRepository.findOne({
+      where: { id },
+    });
+    return found ? this.toDomain(found) : null;
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    const found = await this.ormRepository.findOne({
+      where: { email: email.toLowerCase().trim() },
+    });
+    return found ? this.toDomain(found) : null;
+  }
+
+  async findByPhoneNumber(phoneNumber: string): Promise<User | null> {
+    const found = await this.ormRepository.findOne({
+      where: { phoneNumber },
+    });
+    return found ? this.toDomain(found) : null;
+  }
+
+  async findAndCount(
+    page: number,
+    limit: number,
+    search?: string
+  ): Promise<{ users: User[]; totalCount: number }> {
+    const queryBuilder = this.ormRepository.createQueryBuilder("user");
+
+    if (search) {
+      queryBuilder.where(
+        "(unaccent(user.fullName) ILIKE unaccent(:search) OR user.email ILIKE :search)",
+        { search: `%${search}%` }
+      );
+    }
+
+    const [found, totalCount] = await queryBuilder
+      .orderBy("user.createdAt", "DESC")
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      users: found.map((orm) => this.toDomain(orm)),
+      totalCount,
+    };
+  }
+
+  private toDomain(orm: UserOrmEntity): User {
+    return new User({
+      id: orm.id,
+      roleId: orm.roleId,
+      email: orm.email,
+      phoneNumber: orm.phoneNumber ?? undefined,
+      passwordHash: orm.passwordHash,
+      fullName: orm.fullName,
+      avatarUrl: orm.avatarUrl ?? undefined,
+      dateOfBirth: orm.dateOfBirth ?? undefined,
+      gender: orm.gender,
+      status: orm.status,
+      emailVerifiedAt: orm.emailVerifiedAt ?? undefined,
+      phoneVerifiedAt: orm.phoneVerifiedAt ?? undefined,
+      lastLoginAt: orm.lastLoginAt ?? undefined,
+      refreshToken: orm.refreshToken ?? undefined,
+      createdAt: orm.createdAt,
+      updatedAt: orm.updatedAt,
+      deletedAt: orm.deletedAt,
+    });
+  }
+
+  private toOrm(domain: User): UserOrmEntity {
+    const orm = new UserOrmEntity();
+    orm.id = domain.id;
+    orm.roleId = domain.roleId;
+    orm.email = domain.email;
+    orm.phoneNumber = domain.phoneNumber ?? null;
+    orm.passwordHash = domain.passwordHash;
+    orm.fullName = domain.fullName;
+    orm.avatarUrl = domain.avatarUrl ?? null;
+    orm.dateOfBirth = domain.dateOfBirth ?? null;
+    orm.gender = domain.gender;
+    orm.status = domain.status;
+    orm.emailVerifiedAt = domain.emailVerifiedAt;
+    orm.phoneVerifiedAt = domain.phoneVerifiedAt;
+    orm.lastLoginAt = domain.lastLoginAt;
+    orm.refreshToken = domain.refreshToken;
+    orm.createdAt = domain.createdAt;
+    orm.updatedAt = domain.updatedAt;
+    orm.deletedAt = domain.deletedAt;
+    return orm;
+  }
+}

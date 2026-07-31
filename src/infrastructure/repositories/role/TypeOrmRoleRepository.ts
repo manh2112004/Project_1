@@ -43,6 +43,13 @@ export class TypeOrmRoleRepository implements IRoleRepository {
     });
     return found ? this.toDomain(found) : null;
   }
+  async findByCode(code: string): Promise<Role | null> {
+    const found = await this.ormRepository.findOne({
+      where: { code },
+      relations: { permissions: true },
+    });
+    return found ? this.toDomain(found) : null;
+  }
   async findAndCount(
     page: number,
     limit: number,

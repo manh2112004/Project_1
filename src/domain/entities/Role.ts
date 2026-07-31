@@ -69,10 +69,6 @@ export class Role extends Entity {
     this.touch();
   }
 
-  public delete(): void {
-    super.delete();
-  }
-
   //gán quyển
   public assignPermission(permissionCode: string): void {
     if (!this._permissionCodes.includes(permissionCode)) {
