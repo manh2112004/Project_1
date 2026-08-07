@@ -6,9 +6,11 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from "typeorm";
 import { RoleOrmEntity } from "./RoleOrmEntity";
+import { UserSocialAccountOrmEntity } from "./UserSocialAccountOrmEntity";
 
 @Entity({ name: "users" })
 export class UserOrmEntity {
@@ -24,8 +26,8 @@ export class UserOrmEntity {
   @Column({ name: "phone_number", type: "varchar", length: 15, unique: true, nullable: true })
   phoneNumber!: string | null;
 
-  @Column({ name: "password_hash", type: "varchar", length: 255 })
-  passwordHash!: string;
+  @Column({ name: "password_hash", type: "varchar", length: 255, nullable: true })
+  passwordHash!: string | null;
 
   @Column({ name: "full_name", type: "varchar", length: 100 })
   fullName!: string;
@@ -67,4 +69,11 @@ export class UserOrmEntity {
   @ManyToOne(() => RoleOrmEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "role_id" })
   role!: RoleOrmEntity;
+
+  // Quan hệ 1-N với danh sách thông tin đăng nhập từ MXH/Bên thứ 3
+  @OneToMany(() => UserSocialAccountOrmEntity, (social) => social.user, {
+    cascade: true,
+  })
+  socialAccounts!: UserSocialAccountOrmEntity[];
 }
+

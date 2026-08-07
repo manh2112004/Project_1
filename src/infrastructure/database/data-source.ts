@@ -10,6 +10,11 @@ import { RoleOrmEntity } from "./entities/RoleOrmEntity";
 import { PermissionOrmEntity } from "./entities/PermissionOrmEntity";
 import { UserOrmEntity } from "./entities/UserOrmEntity";
 
+import { UserAddressOrmEntity } from "./entities/UserAddressOrmEntity";
+import { OrderOrmEntity } from "./entities/OrderOrmEntity";
+import { OrderItemOrmEntity } from "./entities/OrderItemOrmEntity";
+import { UserSocialAccountOrmEntity } from "./entities/UserSocialAccountOrmEntity";
+
 export const AppDataSource = new DataSource({
   type: "postgres",
   host: config.db.host,
@@ -28,6 +33,10 @@ export const AppDataSource = new DataSource({
     RoleOrmEntity,
     PermissionOrmEntity,
     UserOrmEntity,
+    UserAddressOrmEntity,
+    OrderOrmEntity,
+    OrderItemOrmEntity,
+    UserSocialAccountOrmEntity,
   ],
   migrations: [__dirname + "/migrations/*{.ts,.js}"],
   subscribers: [],
