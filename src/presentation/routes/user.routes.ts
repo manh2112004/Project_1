@@ -16,6 +16,10 @@ import { DeleteUserUseCase } from "../../application/use-cases/user/DeleteUserUs
 import { ChangeUserRoleUseCase } from "../../application/use-cases/user/ChangeUserRoleUseCase";
 import { BlockUserUseCase } from "../../application/use-cases/user/BlockUserUseCase";
 import { ActivateUserUseCase } from "../../application/use-cases/user/ActivateUserUseCase";
+import { RequestChangeUserEmailUseCase } from "../../application/use-cases/user/RequestChangeUserEmailUseCase";
+import { ConfirmChangeUserEmailUseCase } from "../../application/use-cases/user/ConfirmChangeUserEmailUseCase";
+import { EmailService } from "../../infrastructure/services/EmailService";
+import { redisClient } from "../../infrastructure/cache/redisClient";
 
 import { UserController } from "../controllers/UserController";
 import { authenticate } from "../middlewares/authenticate";
@@ -30,6 +34,7 @@ export const userRouter = (): Router => {
   const userRepository = new TypeOrmUserRepository(userOrmRepository);
   const roleRepository = new TypeOrmRoleRepository(roleOrmRepository);
   const passwordService = new BcryptPasswordService();
+  const emailService = new EmailService();
 
   // Khởi tạo các Use Cases
   const createUserByAdminUseCase = new CreateUserByAdminUseCase(
@@ -42,6 +47,16 @@ export const userRouter = (): Router => {
   const changeUserPasswordUseCase = new ChangeUserPasswordUseCase(
     userRepository,
     passwordService,
+  );
+  const requestChangeUserEmailUseCase = new RequestChangeUserEmailUseCase(
+    userRepository,
+    passwordService,
+    redisClient,
+    emailService,
+  );
+  const confirmChangeUserEmailUseCase = new ConfirmChangeUserEmailUseCase(
+    userRepository,
+    redisClient,
   );
   const getUsersPaginatedUseCase = new GetUsersPaginatedUseCase(userRepository);
   const getUserByIdUseCase = new GetUserByIdUseCase(userRepository);
@@ -64,6 +79,8 @@ export const userRouter = (): Router => {
     changeUserRoleUseCase,
     blockUserUseCase,
     activateUserUseCase,
+    requestChangeUserEmailUseCase,
+    confirmChangeUserEmailUseCase,
   );
 
   // 1. Các routes cá nhân dành cho Người dùng hiện tại (Yêu cầu đăng nhập)
@@ -73,6 +90,12 @@ export const userRouter = (): Router => {
   );
   router.put("/me/change-password", authenticate, (req, res) =>
     userController.changePassword(req, res),
+  );
+  router.post("/me/request-change-email", authenticate, (req, res) =>
+    userController.requestChangeEmail(req, res),
+  );
+  router.post("/me/confirm-change-email", authenticate, (req, res) =>
+    userController.confirmChangeEmail(req, res),
   );
 
   // 2. Các routes quản trị người dùng (Bảo vệ bằng authorize)

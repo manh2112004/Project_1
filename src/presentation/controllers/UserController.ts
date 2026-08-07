@@ -9,8 +9,11 @@ import { DeleteUserUseCase } from "../../application/use-cases/user/DeleteUserUs
 import { ChangeUserRoleUseCase } from "../../application/use-cases/user/ChangeUserRoleUseCase";
 import { BlockUserUseCase } from "../../application/use-cases/user/BlockUserUseCase";
 import { ActivateUserUseCase } from "../../application/use-cases/user/ActivateUserUseCase";
+import { RequestChangeUserEmailUseCase } from "../../application/use-cases/user/RequestChangeUserEmailUseCase";
+import { ConfirmChangeUserEmailUseCase } from "../../application/use-cases/user/ConfirmChangeUserEmailUseCase";
 import { UserMapper } from "../../application/mappers/UserMapper";
 import { sseManager } from "../../infrastructure/services/SseManager";
+
 export class UserController {
   constructor(
     private readonly createUserByAdminUseCase: CreateUserByAdminUseCase,
@@ -23,7 +26,9 @@ export class UserController {
     private readonly changeUserRoleUseCase: ChangeUserRoleUseCase,
     private readonly blockUserUseCase: BlockUserUseCase,
     private readonly activateUserUseCase: ActivateUserUseCase,
-  ) {}
+    private readonly requestChangeUserEmailUseCase: RequestChangeUserEmailUseCase,
+    private readonly confirmChangeUserEmailUseCase: ConfirmChangeUserEmailUseCase,
+  ) { }
   connectSse(req: Request, res: Response): void {
     const currentUser = (req as any).user;
     sseManager.addClient(currentUser.id, res);
@@ -289,6 +294,52 @@ export class UserController {
       res.status(400).json({
         success: false,
         message: error.message || "Cập nhật thông tin người dùng thất bại",
+      });
+    }
+  }
+
+  async requestChangeEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const currentUser = (req as any).user;
+      const { newEmail, currentPassword } = req.body;
+
+      await this.requestChangeUserEmailUseCase.execute({
+        userId: currentUser.id,
+        newEmail,
+        currentPassword,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: `Mã xác thực OTP đã được gửi đến email mới (${newEmail}).`,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message || "Yêu cầu thay đổi Email thất bại.",
+      });
+    }
+  }
+
+  async confirmChangeEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const currentUser = (req as any).user;
+      const { otpCode } = req.body;
+
+      const user = await this.confirmChangeUserEmailUseCase.execute({
+        userId: currentUser.id,
+        otpCode,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "Thay đổi Email thành công!",
+        data: UserMapper.toResponse(user),
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message || "Xác nhận mã OTP thất bại.",
       });
     }
   }
