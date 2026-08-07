@@ -52,7 +52,83 @@ export class EmailService {
       console.log(`\n==================================================`);
       console.log(`📧 [DEV EMAIL SIMULATION] Nối mạng SMTP chưa được cấu hình`);
       console.log(`Gửi đến: ${email}`);
-      console.log(`MÃ OTP ĐĂNG KÝ LÀ: >>> ${otpCode} <<< (Hiệu lực 5 phút)`);
+    }
+  }
+
+  async sendChangeEmailOtp(email: string, otpCode: string): Promise<void> {
+    const subject = "Mã xác thực OTP thay đổi Email tài khoản NEXSTORE";
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0f172a; color: #ffffff; rounded-corner: 10px;">
+        <h2 style="color: #6366f1;">XÁC THỰC THAY ĐỔI EMAIL TÀI KHOẢN NEXSTORE</h2>
+        <p>Xin chào,</p>
+        <p>Bạn vừa yêu cầu thay đổi địa chỉ Email nhận thông tin sang <strong>${email}</strong>.</p>
+        <p>Mã xác thực OTP của bạn là:</p>
+        <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #10b981; padding: 10px 0;">
+          ${otpCode}
+        </div>
+        <p style="color: #94a3b8; font-size: 13px;">Mã OTP có hiệu lực trong vòng <strong>5 phút</strong>. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>
+        <hr style="border-color: #334155; margin-top: 20px;" />
+        <p style="color: #64748b; font-size: 11px;">Trân trọng,<br/>Đội ngũ Hỗ trợ NEXSTORE</p>
+      </div>
+    `;
+
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({
+          from: `"NEXSTORE Security" <${process.env.SMTP_USER}>`,
+          to: email,
+          subject,
+          html: htmlContent,
+        });
+        console.log(`[EmailService] Đã gửi OTP thay đổi Email đến: ${email}`);
+      } catch (error) {
+        console.error(`[EmailService] Lỗi gửi mail qua SMTP:`, error);
+        console.log(`[DEV FALLBACK] MÃ OTP ĐỔI EMAIL CỦA ${email} LÀ: ${otpCode}`);
+      }
+    } else {
+      console.log(`\n==================================================`);
+      console.log(`📧 [DEV EMAIL SIMULATION] SMTP chưa được cấu hình`);
+      console.log(`Gửi đến: ${email}`);
+      console.log(`MÃ OTP ĐỔI EMAIL LÀ: >>> ${otpCode} <<< (Hiệu lực 5 phút)`);
+      console.log(`==================================================\n`);
+    }
+  }
+
+  async sendForgotPasswordOtpEmail(email: string, otpCode: string): Promise<void> {
+    const subject = "Mã xác thực OTP khôi phục mật khẩu tài khoản NEXSTORE";
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0f172a; color: #ffffff; rounded-corner: 10px;">
+        <h2 style="color: #6366f1;">KHÔI PHỤC MẬT KHẨU TÀI KHOẢN NEXSTORE</h2>
+        <p>Xin chào,</p>
+        <p>Chúng tôi đã nhận được yêu cầu khôi phục mật khẩu cho tài khoản <strong>${email}</strong>.</p>
+        <p>Mã xác thực OTP đặt lại mật khẩu của bạn là:</p>
+        <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #f59e0b; padding: 10px 0;">
+          ${otpCode}
+        </div>
+        <p style="color: #94a3b8; font-size: 13px;">Mã OTP có hiệu lực trong vòng <strong>5 phút</strong>. Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>
+        <hr style="border-color: #334155; margin-top: 20px;" />
+        <p style="color: #64748b; font-size: 11px;">Trân trọng,<br/>Đội ngũ Hỗ trợ NEXSTORE</p>
+      </div>
+    `;
+
+    if (this.transporter) {
+      try {
+        await this.transporter.sendMail({
+          from: `"NEXSTORE Security" <${process.env.SMTP_USER}>`,
+          to: email,
+          subject,
+          html: htmlContent,
+        });
+        console.log(`[EmailService] Đã gửi OTP Khôi phục mật khẩu đến: ${email}`);
+      } catch (error) {
+        console.error(`[EmailService] Lỗi gửi mail qua SMTP:`, error);
+        console.log(`[DEV FALLBACK] MÃ OTP QUÊN MẬT KHẨU CỦA ${email} LÀ: ${otpCode}`);
+      }
+    } else {
+      console.log(`\n==================================================`);
+      console.log(`📧 [DEV EMAIL SIMULATION] SMTP chưa được cấu hình`);
+      console.log(`Gửi đến: ${email}`);
+      console.log(`MÃ OTP QUÊN MẬT KHẨU LÀ: >>> ${otpCode} <<< (Hiệu lực 5 phút)`);
       console.log(`==================================================\n`);
     }
   }

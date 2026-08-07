@@ -13,6 +13,9 @@ import { SendOtpUseCase } from "../../application/use-cases/auth/SendOtpUseCase"
 import { LoginUseCase } from "../../application/use-cases/auth/LoginUseCase";
 import { RefreshTokenUseCase } from "../../application/use-cases/auth/RefreshTokenUseCase";
 import { GoogleAuthUseCase } from "../../application/use-cases/auth/GoogleAuthUseCase";
+import { ForgotPasswordUseCase } from "../../application/use-cases/auth/ForgotPasswordUseCase";
+import { VerifyResetOtpUseCase } from "../../application/use-cases/auth/VerifyResetOtpUseCase";
+import { ResetPasswordUseCase } from "../../application/use-cases/auth/ResetPasswordUseCase";
 import { AuthController } from "../controllers/AuthController";
 
 export const authRouter = (): Router => {
@@ -60,18 +63,38 @@ export const authRouter = (): Router => {
     jwtService,
   );
 
+  const forgotPasswordUseCase = new ForgotPasswordUseCase(
+    userRepository,
+    redisClient,
+    emailService,
+  );
+
+  const verifyResetOtpUseCase = new VerifyResetOtpUseCase(
+    userRepository,
+    redisClient,
+  );
+
+  const resetPasswordUseCase = new ResetPasswordUseCase(
+    userRepository,
+    passwordService,
+    redisClient,
+  );
+
   const authController = new AuthController(
     registerUseCase,
     loginUseCase,
     refreshTokenUseCase,
     sendOtpUseCase,
     googleAuthUseCase,
+    forgotPasswordUseCase,
+    verifyResetOtpUseCase,
+    resetPasswordUseCase,
   );
 
   // Endpoint Đăng nhập qua Google OAuth2
   router.post("/google", (req, res) => authController.googleLogin(req, res));
 
-  // Endpoint Gửi mã OTP xác thực qua Email
+  // Endpoint Gửi mã OTP xác thực qua Email khi đăng ký
   router.post("/send-otp", (req, res) => authController.sendOtp(req, res));
 
   // Endpoint Đăng ký tài khoản Khách hàng public
@@ -83,6 +106,17 @@ export const authRouter = (): Router => {
   // Endpoint Làm mới Access Token
   router.post("/refresh-token", (req, res) =>
     authController.refreshToken(req, res),
+  );
+
+  // Endpoint Quên Mật Khẩu & Đặt Lại Mật Khẩu
+  router.post("/forgot-password", (req, res) =>
+    authController.forgotPassword(req, res),
+  );
+  router.post("/verify-reset-otp", (req, res) =>
+    authController.verifyResetOtp(req, res),
+  );
+  router.post("/reset-password", (req, res) =>
+    authController.resetPassword(req, res),
   );
 
   return router;
