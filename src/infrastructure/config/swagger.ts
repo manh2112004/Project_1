@@ -1,7 +1,7 @@
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import { Express } from "express";
-import path from "path";
+
 const options: swaggerJSDoc.Options = {
   definition: {
     openapi: "3.0.0",
@@ -16,7 +16,7 @@ const options: swaggerJSDoc.Options = {
         description: "Development Server",
       },
     ],
-    // Cấu hình JWT Bearer Token trong Swagger UI
+    // Cấu hình JWT Bearer Token toàn cục trong Swagger UI
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -26,12 +26,18 @@ const options: swaggerJSDoc.Options = {
         },
       },
     },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   // Đường dẫn quét các ghi chú (JSDoc comments) để tự động tạo document
   apis: ["./src/presentation/docs/*.ts", "./src/presentation/docs/*.js"],
 };
 
 const swaggerSpec = swaggerJSDoc(options);
+
 export const setupSwagger = (app: Express): void => {
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   console.log(" Swagger Docs sẵn sàng tại: http://localhost:3000/api-docs");

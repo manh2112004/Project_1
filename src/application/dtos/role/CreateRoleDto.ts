@@ -3,16 +3,21 @@ export interface CreateRoleDto {
   description?: string;
   code: string;
 }
+
 export interface CreateRoleResponseDto {
   id: string;
   name: string;
+  code: string;
   description?: string;
   createdAt: string;
 }
+
 export interface RoleResponseDto {
   id: string;
   name: string;
+  code: string;
   description?: string;
+  permissionCodes: string[];
   createdAt: string;
   updatedAt: string;
 }

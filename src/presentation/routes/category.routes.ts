@@ -11,6 +11,8 @@ import { DeleteCategoryUseCase } from "../../application/use-cases/category/Dele
 import { GetCategoryByIdUseCase } from "../../application/use-cases/category/GetCategoryByIdUseCase";
 import { GetAllCategoryUseCase } from "../../application/use-cases/category/GetAllCategoryUseCase";
 import { GetCategoriesPaginatedUseCase } from "../../application/use-cases/category/GetCategoriesPaginatedUseCase";
+import { authenticate } from "../middlewares/authenticate";
+import { authorize } from "../middlewares/authorize";
 
 const categoryRouter = Router();
 
@@ -42,17 +44,26 @@ export const createCategoryRouter = (): Router => {
     getAllCategoryUseCase,
     getCategoriesPaginatedUseCase,
   );
+
+  // Public GET endpoints
   categoryRouter.get("/paginated", (req, res) =>
     categoryController.getPaginated(req, res),
-  );
-  categoryRouter.post("/", (req, res) => categoryController.create(req, res));
-  categoryRouter.put("/:id", (req, res) => categoryController.update(req, res));
-  categoryRouter.delete("/:id", (req, res) =>
-    categoryController.delete(req, res),
   );
   categoryRouter.get("/:id", (req, res) =>
     categoryController.getById(req, res),
   );
   categoryRouter.get("/", (req, res) => categoryController.getAll(req, res));
+
+  // Protected Mutating endpoints
+  categoryRouter.post("/", authenticate, authorize("CREATE_CATEGORY"), (req, res) =>
+    categoryController.create(req, res),
+  );
+  categoryRouter.put("/:id", authenticate, authorize("UPDATE_CATEGORY"), (req, res) =>
+    categoryController.update(req, res),
+  );
+  categoryRouter.delete("/:id", authenticate, authorize("DELETE_CATEGORY"), (req, res) =>
+    categoryController.delete(req, res),
+  );
+
   return categoryRouter;
 };

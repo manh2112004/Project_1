@@ -6,7 +6,7 @@ import {
 } from "../../dtos/role/CreateRoleDto";
 
 export class CreateRoleUseCase {
-  constructor(private readonly roleRepository: IRoleRepository) {}
+  constructor(private readonly roleRepository: IRoleRepository) { }
   async execute(dto: CreateRoleDto): Promise<CreateRoleResponseDto> {
     const existing = await this.roleRepository.findByName(dto.name);
     if (existing) {
@@ -21,6 +21,7 @@ export class CreateRoleUseCase {
     return {
       id: saveRole.id,
       name: saveRole.name,
+      code: saveRole.code,
       description: saveRole.description ?? undefined,
       createdAt: saveRole.createdAt.toISOString(),
     };

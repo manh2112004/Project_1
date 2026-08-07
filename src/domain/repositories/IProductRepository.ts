@@ -3,6 +3,7 @@ import { Product } from "../entities/Product";
 export interface IProductRepository {
   save(product: Product): Promise<Product>;
   findById(id: string): Promise<Product | null>;
+  findByIds(ids: string[]): Promise<Product[]>;
   findBySku(sku: string): Promise<Product | null>;
   findBySlug(slug: string): Promise<Product | null>;
   delete(id: string): Promise<void>;

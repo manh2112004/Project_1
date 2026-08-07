@@ -5,6 +5,7 @@ import { DeleteProductUseCase } from "../../application/use-cases/product/Delete
 import { GetProductByIdUseCase } from "../../application/use-cases/product/GetProductByIdUseCase";
 import { GetAllProductUseCase } from "../../application/use-cases/product/GetAllProductUseCase";
 import { GetProductsPaginatedUseCase } from "../../application/use-cases/product/GetProductsPaginatedUseCase";
+import { sseManager } from "../../infrastructure/services/SseManager";
 
 export class ProductController {
   constructor(
@@ -45,7 +46,7 @@ export class ProductController {
         discountPrice,
         status,
       });
-
+      sseManager.sendToAll("product:created", product);
       res.status(201).json({
         success: true,
         message: "Tạo sản phẩm thành công.",

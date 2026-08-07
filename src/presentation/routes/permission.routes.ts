@@ -9,6 +9,8 @@ import { GetPermissionByIdUseCase } from "../../application/use-cases/permission
 import { GetAllPermissionUseCase } from "../../application/use-cases/permission/GetAllPermissionUseCase";
 import { GetPermissionPaginationUseCase } from "../../application/use-cases/permission/GetPermissionPaginationUseCase";
 import { PermissionController } from "../controllers/PermissionController";
+import { authenticate } from "../middlewares/authenticate";
+import { authorize } from "../middlewares/authorize";
 
 const PermissionRouter = Router();
 
@@ -41,16 +43,19 @@ export const permissionRouter = (): Router => {
     getPermissionPaginationUseCase,
   );
 
-  PermissionRouter.get("/paginated", (req, res) =>
+  // Bảo vệ tất cả các API quản lý Quyền Hạn bằng authenticate JWT middleware
+  PermissionRouter.use(authenticate);
+
+  PermissionRouter.get("/paginated", authorize("READ_PERMISSION"), (req, res) =>
     permissionController.getPaginated(req, res),
   );
-  PermissionRouter.post("/", (req, res) =>
+  PermissionRouter.post("/", authorize("MANAGE_PERMISSION"), (req, res) =>
     permissionController.create(req, res),
   );
-  PermissionRouter.get("/:id", (req, res) =>
+  PermissionRouter.get("/:id", authorize("READ_PERMISSION"), (req, res) =>
     permissionController.getById(req, res),
   );
-  PermissionRouter.get("/", (req, res) =>
+  PermissionRouter.get("/", authorize("READ_PERMISSION"), (req, res) =>
     permissionController.getAll(req, res),
   );
 

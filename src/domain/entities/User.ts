@@ -1,14 +1,16 @@
-import { Entity } from "../common/Entity";
+import { AggregateRoot } from "../common/AggregateRoot";
 import { UserStatus } from "../constant/UserStatus";
 import { Email } from "../value-objects/Email";
 import { Gender } from "../value-objects/Gender";
 import { PhoneNumber } from "../value-objects/PhoneNumber";
+import { UserSocialAccount } from "./UserSocialAccount";
+
 export interface UserProps {
   id?: string;
   roleId: string;
   email: string;
   phoneNumber?: string;
-  passwordHash: string;
+  passwordHash?: string | null;
   fullName: string;
   avatarUrl?: string;
   dateOfBirth?: Date;
@@ -18,21 +20,25 @@ export interface UserProps {
   phoneVerifiedAt?: Date;
   lastLoginAt?: Date;
   refreshToken?: string;
+  socialAccounts?: UserSocialAccount[];
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;
 }
+
 export interface UpdateUserProps {
   fullName?: string;
   avatarUrl?: string;
   dateOfBirth?: Date;
   gender?: string;
+  phoneNumber?: string;
 }
-export class User extends Entity {
+
+export class User extends AggregateRoot {
   private _roleId: string;
   private _email: Email;
   private _phoneNumber?: PhoneNumber;
-  private _passwordHash: string;
+  private _passwordHash: string | null;
   private _fullName: string;
   private _avatarUrl?: string;
   private _dateOfBirth?: Date;
@@ -42,12 +48,14 @@ export class User extends Entity {
   private _phoneVerifiedAt: Date | null;
   private _lastLoginAt: Date | null;
   private _refreshToken: string | null;
+  private _socialAccounts: UserSocialAccount[];
+
   constructor(props: UserProps) {
     super(props.id, props.createdAt, props.updatedAt, props.deletedAt);
     this._roleId = props.roleId;
     this._email = Email.create(props.email);
     this._phoneNumber = PhoneNumber.create(props.phoneNumber);
-    this._passwordHash = props.passwordHash;
+    this._passwordHash = props.passwordHash ?? null;
     this._fullName = props.fullName;
     this._avatarUrl = props.avatarUrl;
     this._dateOfBirth = props.dateOfBirth;
@@ -57,11 +65,13 @@ export class User extends Entity {
     this._phoneVerifiedAt = props.phoneVerifiedAt ?? null;
     this._lastLoginAt = props.lastLoginAt ?? null;
     this._refreshToken = props.refreshToken ?? null;
+    this._socialAccounts = props.socialAccounts ?? [];
   }
+
   public static create(props: {
     roleId: string;
     email: string;
-    passwordHash: string;
+    passwordHash?: string | null;
     fullName: string;
     phoneNumber?: string;
     gender: string;
@@ -71,13 +81,18 @@ export class User extends Entity {
     if (!props.fullName || props.fullName.trim().length === 0) {
       throw new Error("Họ và tên không được để trống.");
     }
+    if (!props.email || !props.email.trim()) {
+      throw new Error("Email không được để trống.");
+    }
     return new User({
       roleId: props.roleId,
       email: props.email.toLowerCase().trim(),
-      passwordHash: props.passwordHash,
+      passwordHash: props.passwordHash ?? null,
       fullName: props.fullName.trim(),
       phoneNumber: props.phoneNumber,
       gender: props.gender,
+      avatarUrl: props.avatarUrl,
+      dateOfBirth: props.dateOfBirth,
       status: UserStatus.ACTIVE,
     });
   }
@@ -94,7 +109,7 @@ export class User extends Entity {
     return this._phoneNumber?.value;
   }
 
-  public get passwordHash(): string {
+  public get passwordHash(): string | null {
     return this._passwordHash;
   }
 
@@ -129,8 +144,44 @@ export class User extends Entity {
   public get lastLoginAt(): Date | null {
     return this._lastLoginAt;
   }
+
   public get refreshToken(): string | null {
     return this._refreshToken;
+  }
+
+  public get socialAccounts(): UserSocialAccount[] {
+    return [...this._socialAccounts];
+  }
+
+  // Phương thức thêm Social Account vào Aggregate Root
+  public addSocialAccount(
+    provider: string,
+    subId: string,
+    email?: string,
+  ): UserSocialAccount {
+    const existing = this._socialAccounts.find(
+      (s) => s.provider === provider.toUpperCase().trim() && s.subId === subId.trim(),
+    );
+    if (existing) {
+      return existing;
+    }
+
+    const socialAccount = UserSocialAccount.create({
+      userId: this.id,
+      provider,
+      subId,
+      email,
+    });
+
+    this._socialAccounts.push(socialAccount);
+    this.touch();
+    return socialAccount;
+  }
+
+  public hasSocialAccount(provider: string, subId: string): boolean {
+    return this._socialAccounts.some(
+      (s) => s.provider === provider.toUpperCase().trim() && s.subId === subId.trim(),
+    );
   }
 
   public updateProfile(props: UpdateUserProps): void {
@@ -139,6 +190,11 @@ export class User extends Entity {
         throw new Error("Họ và tên không được để trống.");
       }
       this._fullName = props.fullName.trim();
+    }
+    if (props.phoneNumber !== undefined) {
+      this._phoneNumber = props.phoneNumber
+        ? PhoneNumber.create(props.phoneNumber)
+        : undefined;
     }
     if (props.avatarUrl !== undefined) {
       this._avatarUrl = props.avatarUrl;
@@ -212,3 +268,4 @@ export class User extends Entity {
     this.touch();
   }
 }
+

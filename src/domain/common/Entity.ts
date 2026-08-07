@@ -1,5 +1,4 @@
-import { randomUUID } from "node:crypto";
-
+// import { randomUUID } from "node:crypto";
 export abstract class Entity {
   protected readonly _id: string;
   protected readonly _createdAt: Date;
@@ -12,7 +11,7 @@ export abstract class Entity {
     updatedAt?: Date,
     deletedAt?: Date | null,
   ) {
-    this._id = id || randomUUID();
+    this._id = id || crypto.randomUUID();
     this._createdAt = createdAt || new Date();
     this._updatedAt = updatedAt || new Date();
     this._deletedAt = deletedAt || null;

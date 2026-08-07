@@ -109,6 +109,8 @@
  *   post:
  *     summary: Tạo danh mục mới
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -261,6 +263,8 @@
  *   delete:
  *     summary: Xóa mềm danh mục (cũng sẽ xóa mềm các sản phẩm liên kết)
  *     tags: [Categories]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

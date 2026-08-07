@@ -10,6 +10,8 @@ import { DeleteInventoryUseCase } from "../../application/use-cases/inventory/De
 import { GetInventoryByIdUseCase } from "../../application/use-cases/inventory/GetInventoryByIdUseCase";
 import { GetAllInventoryUseCase } from "../../application/use-cases/inventory/GetAllInventoryUseCase";
 import { InventoryController } from "../controllers/InventoryController";
+import { authenticate } from "../middlewares/authenticate";
+import { authorize } from "../middlewares/authorize";
 
 const inventoryRouterInstance = Router();
 
@@ -37,12 +39,12 @@ export const inventoryRouter = (): Router => {
         getAllInventoryUseCase
     );
 
-    // 4. Routes
-    inventoryRouterInstance.post("/", (req, res) => inventoryController.create(req, res));
-    inventoryRouterInstance.put("/:id", (req, res) => inventoryController.update(req, res));
-    inventoryRouterInstance.delete("/:id", (req, res) => inventoryController.delete(req, res));
-    inventoryRouterInstance.get("/:id", (req, res) => inventoryController.getById(req, res));
-    inventoryRouterInstance.get("/", (req, res) => inventoryController.getAll(req, res));
+    // 4. Protected Routes (Kiểm tra quyền hạn chi tiết)
+    inventoryRouterInstance.post("/", authenticate, authorize("IMPORT_INVENTORY"), (req, res) => inventoryController.create(req, res));
+    inventoryRouterInstance.put("/:id", authenticate, authorize("UPDATE_INVENTORY"), (req, res) => inventoryController.update(req, res));
+    inventoryRouterInstance.delete("/:id", authenticate, authorize("UPDATE_INVENTORY"), (req, res) => inventoryController.delete(req, res));
+    inventoryRouterInstance.get("/:id", authenticate, authorize("READ_INVENTORY"), (req, res) => inventoryController.getById(req, res));
+    inventoryRouterInstance.get("/", authenticate, authorize("READ_INVENTORY"), (req, res) => inventoryController.getAll(req, res));
 
     return inventoryRouterInstance;
 };

@@ -1,10 +1,16 @@
-import { Repository } from "typeorm";
+import { Repository, Raw, In } from "typeorm";
 import { Product } from "../../../domain/entities/Product";
 import { IProductRepository } from "../../../domain/repositories/IProductRepository";
 import { ProductOrmEntity } from "../../database/entities/ProductOrmEntity";
-import { Raw } from "typeorm";
+
 export class TypeOrmProductRepository implements IProductRepository {
   constructor(private readonly ormRepository: Repository<ProductOrmEntity>) { }
+
+  async findByIds(ids: string[]): Promise<Product[]> {
+    if (!ids || ids.length === 0) return [];
+    const found = await this.ormRepository.findBy({ id: In(ids) });
+    return found.map((orm) => this.toDomain(orm));
+  }
   async findAndCount(
     page: number,
     limit: number,

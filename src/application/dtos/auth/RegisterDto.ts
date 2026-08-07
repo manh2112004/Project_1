@@ -4,4 +4,5 @@ export interface RegisterDto {
   fullName: string;
   phoneNumber?: string;
   gender: string;
+  otp?: string;
 }

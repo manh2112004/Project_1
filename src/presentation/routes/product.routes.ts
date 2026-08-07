@@ -17,7 +17,11 @@ import { InventoryOrmEntity } from "../../infrastructure/database/entities/Inven
 import { ProductImageOrmEntity } from "../../infrastructure/database/entities/ProductImageOrmEntity";
 import { TypeOrmProductImageRepository } from "../../infrastructure/repositories/product-image/TypeOrmProductImageRepository";
 import { GetProductsPaginatedUseCase } from "../../application/use-cases/product/GetProductsPaginatedUseCase";
+import { authenticate } from "../middlewares/authenticate";
+import { authorize } from "../middlewares/authorize";
+
 const productRouterInstance = Router();
+
 export const productRouter = (): Router => {
   const productOrmRepository = AppDataSource.getRepository(ProductOrmEntity);
   const inventoryOrmRepository =
@@ -27,6 +31,7 @@ export const productRouter = (): Router => {
   const productImageOrmRepository = AppDataSource.getRepository(
     ProductImageOrmEntity,
   );
+
   const productRepository = new TypeOrmProductRepository(productOrmRepository);
   const categoryRepository = new TypeOrmCategoryRepository(
     categoryOrmRepository,
@@ -38,6 +43,7 @@ export const productRouter = (): Router => {
   const productImageRepository = new TypeOrmProductImageRepository(
     productImageOrmRepository,
   );
+
   // 2. Use Cases
   const createProductUseCase = new CreateProductUseCase(
     productRepository,
@@ -59,6 +65,7 @@ export const productRouter = (): Router => {
   const getProductsPaginatedUseCase = new GetProductsPaginatedUseCase(
     productRepository,
   );
+
   // 3. Controller
   const productController = new ProductController(
     createProductUseCase,
@@ -68,17 +75,10 @@ export const productRouter = (): Router => {
     getAllProductUseCase,
     getProductsPaginatedUseCase,
   );
+
+  // Public GET endpoints
   productRouterInstance.get("/paginated", (req, res) =>
     productController.getPaginated(req, res),
-  );
-  productRouterInstance.post("/", (req, res) =>
-    productController.create(req, res),
-  );
-  productRouterInstance.put("/:id", (req, res) =>
-    productController.update(req, res),
-  );
-  productRouterInstance.delete("/:id", (req, res) =>
-    productController.delete(req, res),
   );
   productRouterInstance.get("/:id", (req, res) =>
     productController.getById(req, res),
@@ -86,5 +86,24 @@ export const productRouter = (): Router => {
   productRouterInstance.get("/", (req, res) =>
     productController.getAll(req, res),
   );
+  productRouterInstance.post(
+    "/",
+    authenticate,
+    authorize("CREATE_PRODUCT"),
+    (req, res) => productController.create(req, res),
+  );
+  productRouterInstance.put(
+    "/:id",
+    authenticate,
+    authorize("UPDATE_PRODUCT"),
+    (req, res) => productController.update(req, res),
+  );
+  productRouterInstance.delete(
+    "/:id",
+    authenticate,
+    authorize("DELETE_PRODUCT"),
+    (req, res) => productController.delete(req, res),
+  );
+
   return productRouterInstance;
 };

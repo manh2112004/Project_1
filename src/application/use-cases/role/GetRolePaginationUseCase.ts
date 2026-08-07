@@ -12,7 +12,7 @@ export interface PaginatedRolesResponse {
 }
 
 export class GetRolePaginationUseCase {
-  constructor(private readonly roleRepository: IRoleRepository) {}
+  constructor(private readonly roleRepository: IRoleRepository) { }
   async execute(
     page?: number,
     limit?: number,
@@ -33,7 +33,9 @@ export class GetRolePaginationUseCase {
       roles: roles.map((role) => ({
         id: role.id,
         name: role.name,
+        code: role.code,
         description: role.description ?? undefined,
+        permissionCodes: role.permissionCodes,
         createdAt: role.createdAt.toISOString(),
         updatedAt: role.updatedAt.toISOString(),
       })),

@@ -9,7 +9,9 @@ export class GetAllRoleUseCase {
     return roles.map((role) => ({
       id: role.id,
       name: role.name,
+      code: role.code,
       description: role.description ?? undefined,
+      permissionCodes: role.permissionCodes,
       createdAt: role.createdAt.toISOString(),
       updatedAt: role.updatedAt.toISOString(),
     }));

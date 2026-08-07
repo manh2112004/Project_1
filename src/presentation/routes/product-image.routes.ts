@@ -10,6 +10,7 @@ import { DeleteProductImageUseCase } from "../../application/use-cases/product-i
 import { ProductImageController } from "../controllers/ProductImageController";
 import { upload } from "../middlewares/upload";
 import { getAllProductImageUseCase } from "../../application/use-cases/product-image/getAllProductImageUseCase";
+import { authenticate } from "../middlewares/authenticate";
 
 const productImageRouterInstance = Router();
 
@@ -32,9 +33,12 @@ export const productImageRouter = (): Router => {
         cloudinaryService
     );
 
-    productImageRouterInstance.post("/", upload.array("images", 10), (req, res) => productImageController.create(req, res));
+    // Public GET endpoints
     productImageRouterInstance.get("/", (req, res) => productImageController.getAll(req, res));
-    productImageRouterInstance.delete("/:id", (req, res) => productImageController.delete(req, res));
+
+    // Protected Mutating endpoints
+    productImageRouterInstance.post("/", authenticate, upload.array("images", 10), (req, res) => productImageController.create(req, res));
+    productImageRouterInstance.delete("/:id", authenticate, (req, res) => productImageController.delete(req, res));
 
     return productImageRouterInstance;
 };

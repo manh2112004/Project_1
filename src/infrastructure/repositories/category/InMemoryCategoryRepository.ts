@@ -31,4 +31,15 @@ export class InMemoryCategoryRepository implements ICategoryRepository {
   async findAll(): Promise<Category[]> {
     return this.categories.filter((c) => !c.deletedAt);
   }
+
+  async findAndCount(page: number, limit: number, search?: string): Promise<{ categories: Category[]; totalCount: number }> {
+    let filtered = this.categories.filter((c) => !c.deletedAt);
+    if (search) {
+      filtered = filtered.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
+    }
+    const totalCount = filtered.length;
+    const startIndex = (page - 1) * limit;
+    const categories = filtered.slice(startIndex, startIndex + limit);
+    return { categories, totalCount };
+  }
 }

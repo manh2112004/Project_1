@@ -9,6 +9,9 @@ import { DeleteBrandUseCase } from "../../application/use-cases/brand/DeleteBran
 import { GetBrandByIdUseCase } from "../../application/use-cases/brand/GetBrandByIdUseCase";
 import { GetAllBrandUseCase } from "../../application/use-cases/brand/GetAllBrandUseCase";
 import { GetBrandsPaginatedUseCase } from "../../application/use-cases/brand/GetBrandPaginationUseCase";
+import { authenticate } from "../middlewares/authenticate";
+import { authorize } from "../middlewares/authorize";
+
 const BrandRouter = Router();
 
 export const brandRouter = (): Router => {
@@ -31,14 +34,24 @@ export const brandRouter = (): Router => {
     getAllBrandUseCase,
     getBrandPaginationUseCase,
   );
+
+  // Public GET endpoints
   BrandRouter.get("/paginated", (req, res) =>
     brandControlller.getPaginated(req, res),
   );
-  BrandRouter.post("/", (req, res) => brandControlller.create(req, res));
-  BrandRouter.put("/:id", (req, res) => brandControlller.update(req, res));
-  BrandRouter.delete("/:id", (req, res) => brandControlller.delete(req, res));
   BrandRouter.get("/:id", (req, res) => brandControlller.getById(req, res));
   BrandRouter.get("/", (req, res) => brandControlller.getAll(req, res));
+
+  // Protected Mutating endpoints
+  BrandRouter.post("/", authenticate, authorize("CREATE_BRAND"), (req, res) =>
+    brandControlller.create(req, res),
+  );
+  BrandRouter.put("/:id", authenticate, authorize("UPDATE_BRAND"), (req, res) =>
+    brandControlller.update(req, res),
+  );
+  BrandRouter.delete("/:id", authenticate, authorize("DELETE_BRAND"), (req, res) =>
+    brandControlller.delete(req, res),
+  );
 
   return BrandRouter;
 };

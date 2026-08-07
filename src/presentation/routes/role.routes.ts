@@ -11,6 +11,8 @@ import { GetRolePaginationUseCase } from "../../application/use-cases/role/GetRo
 import { AssignPermissionToRoleUseCase } from "../../application/use-cases/role/AssignPermissionToRoleUseCase";
 import { RevokePermissionFromRoleUseCase } from "../../application/use-cases/role/RevokePermissionFromRoleUseCase";
 import { RoleController } from "../controllers/RoleController";
+import { authenticate } from "../middlewares/authenticate";
+import { authorize } from "../middlewares/authorize";
 
 const RoleRouter = Router();
 
@@ -38,14 +40,17 @@ export const roleRouter = (): Router => {
     revokePermissionFromRoleUseCase,
   );
 
-  RoleRouter.get("/paginated", (req, res) => roleController.getPaginated(req, res));
-  RoleRouter.post("/", (req, res) => roleController.create(req, res));
-  RoleRouter.put("/:id", (req, res) => roleController.update(req, res));
-  RoleRouter.delete("/:id", (req, res) => roleController.delete(req, res));
-  RoleRouter.post("/:id/permissions", (req, res) => roleController.assignPermissions(req, res));
-  RoleRouter.post("/:id/permissions/revoke", (req, res) => roleController.revokePermissions(req, res));
-  RoleRouter.get("/:id", (req, res) => roleController.getById(req, res));
-  RoleRouter.get("/", (req, res) => roleController.getAll(req, res));
+  // Bảo vệ tất cả các API quản lý Vai trò bằng authenticate JWT middleware
+  RoleRouter.use(authenticate);
+
+  RoleRouter.get("/paginated", authorize("READ_ROLE"), (req, res) => roleController.getPaginated(req, res));
+  RoleRouter.post("/", authorize("CREATE_ROLE"), (req, res) => roleController.create(req, res));
+  RoleRouter.put("/:id", authorize("UPDATE_ROLE"), (req, res) => roleController.update(req, res));
+  RoleRouter.delete("/:id", authorize("DELETE_ROLE"), (req, res) => roleController.delete(req, res));
+  RoleRouter.post("/:id/permissions", authorize("ASSIGN_PERMISSION"), (req, res) => roleController.assignPermissions(req, res));
+  RoleRouter.post("/:id/permissions/revoke", authorize("ASSIGN_PERMISSION"), (req, res) => roleController.revokePermissions(req, res));
+  RoleRouter.get("/:id", authorize("READ_ROLE"), (req, res) => roleController.getById(req, res));
+  RoleRouter.get("/", authorize("READ_ROLE"), (req, res) => roleController.getAll(req, res));
 
   return RoleRouter;
 };

@@ -11,12 +11,18 @@ import { uploadRouter } from "./presentation/routes/upload.routes";
 import { setupSwagger } from "./infrastructure/config/swagger";
 import { roleRouter } from "./presentation/routes/role.routes";
 import { permissionRouter } from "./presentation/routes/permission.routes";
+import { userRouter } from "./presentation/routes/user.routes";
+import { authRouter } from "./presentation/routes/auth.routes";
+import { createUserAddressRouter } from "./presentation/routes/user-address.routes";
+import { createCartRouter } from "./presentation/routes/cart.routes";
+import { createOrderRouter } from "./presentation/routes/order.routes";
 const startServer = async () => {
   const app = express();
   app.use(cors());
   app.use(express.json());
   await initializeDatabase();
   setupSwagger(app);
+  app.use("/api/auth", authRouter());
   app.use("/api/categories", createCategoryRouter());
   app.use("/api/brand", brandRouter());
   app.use("/api/products", productRouter());
@@ -25,6 +31,10 @@ const startServer = async () => {
   app.use("/api/upload", uploadRouter());
   app.use("/api/roles", roleRouter());
   app.use("/api/permissions", permissionRouter());
+  app.use("/api/users", userRouter());
+  app.use("/api/user-addresses", createUserAddressRouter());
+  app.use("/api/cart", createCartRouter());
+  app.use("/api/orders", createOrderRouter());
   app.listen(config.port, () => {
     console.log(
       ` Server đang chạy thành công tại: http://localhost:${config.port}`,

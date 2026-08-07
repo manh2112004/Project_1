@@ -58,6 +58,35 @@ describe("User Domain Entity", () => {
       expect(user.phoneNumber).toBeUndefined();
     });
 
+    it("nên tạo thành công người dùng với passwordHash = null khi đăng ký qua Google/Social", () => {
+      const user = User.create({
+        ...validProps,
+        passwordHash: null,
+      });
+
+      expect(user.passwordHash).toBeNull();
+    });
+
+    it("nên thêm và quản lý UserSocialAccount qua User AggregateRoot thành công", () => {
+      const user = User.create({
+        ...validProps,
+        passwordHash: null,
+      });
+
+      const socialAccount = user.addSocialAccount("GOOGLE", "sub-123456789", "user@gmail.com");
+
+      expect(socialAccount).toBeDefined();
+      expect(socialAccount.provider).toBe("GOOGLE");
+      expect(socialAccount.subId).toBe("sub-123456789");
+      expect(user.socialAccounts.length).toBe(1);
+      expect(user.hasSocialAccount("GOOGLE", "sub-123456789")).toBe(true);
+
+      // Thêm trùng lại sẽ trả về lại bản ghi cũ không nhân bản
+      const duplicateSocial = user.addSocialAccount("GOOGLE", "sub-123456789", "user@gmail.com");
+      expect(user.socialAccounts.length).toBe(1);
+      expect(duplicateSocial).toBe(socialAccount);
+    });
+
     it("nên ném lỗi khi số điện thoại sai định dạng", () => {
       expect(() => {
         User.create({ ...validProps, phoneNumber: "12345" });

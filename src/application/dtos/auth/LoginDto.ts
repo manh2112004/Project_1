@@ -10,6 +10,8 @@ export interface LoginResponse {
     id: string;
     email: string;
     fullName: string;
+    avatarUrl?: string;
     roleCode: string;
+    permissions?: string[];
   };
 }
