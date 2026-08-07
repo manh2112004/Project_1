@@ -40,6 +40,7 @@ describe("LoginUseCase", () => {
       findById: vi.fn(),
       findByEmail: vi.fn(),
       findByPhoneNumber: vi.fn(),
+      findBySocialAccount: vi.fn(),
       findAndCount: vi.fn(),
     } as any;
 
@@ -88,6 +89,7 @@ describe("LoginUseCase", () => {
       email: "user@example.com",
       fullName: "Nguyen Van A",
       roleCode: "CUSTOMER",
+      permissions: ["VIEW_PRODUCT", "BUY_PRODUCT"],
     });
 
     expect(mockUser.refreshToken).toBe("refresh_token_token");
@@ -138,6 +140,26 @@ describe("LoginUseCase", () => {
     expect(userRepositoryMock.save).not.toHaveBeenCalled();
   });
 
+  it("nên ném lỗi nếu tài khoản đăng ký bằng Google (passwordHash là null)", async () => {
+    const googleUser = User.create({
+      roleId: "role-customer-uuid",
+      email: "googleuser@example.com",
+      passwordHash: null,
+      fullName: "Google User",
+      gender: "MALE",
+    });
+
+    userRepositoryMock.findByEmail.mockResolvedValue(googleUser);
+
+    await expect(
+      useCase.execute({ email: "googleuser@example.com", password: "Password123" })
+    ).rejects.toThrowError(
+      "Tài khoản này được đăng ký qua bên thứ 3 (Google). Vui lòng chọn 'Đăng nhập bằng Google'."
+    );
+
+    expect(passwordServiceMock.compare).not.toHaveBeenCalled();
+  });
+
   it("nên ném lỗi nếu không tìm thấy vai trò tương ứng với người dùng", async () => {
     userRepositoryMock.findByEmail.mockResolvedValue(mockUser);
     passwordServiceMock.compare.mockResolvedValue(true);
@@ -151,3 +173,4 @@ describe("LoginUseCase", () => {
     expect(userRepositoryMock.save).not.toHaveBeenCalled();
   });
 });
+

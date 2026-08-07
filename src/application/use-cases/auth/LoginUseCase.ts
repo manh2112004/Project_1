@@ -25,6 +25,10 @@ export class LoginUseCase {
     }
 
     // 3. So khớp mật khẩu
+    if (!user.passwordHash) {
+      throw new Error("Tài khoản này được đăng ký qua bên thứ 3 (Google). Vui lòng chọn 'Đăng nhập bằng Google'.");
+    }
+
     const isPasswordValid = await this.passwordService.compare(dto.password, user.passwordHash);
     if (!isPasswordValid) {
       throw new Error("Email hoặc mật khẩu không chính xác.");
@@ -67,7 +71,9 @@ export class LoginUseCase {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
+        avatarUrl: user.avatarUrl,
         roleCode: role.code || "",
+        permissions: role.permissionCodes || [],
       },
     };
   }
