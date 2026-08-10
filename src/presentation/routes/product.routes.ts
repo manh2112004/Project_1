@@ -60,7 +60,10 @@ export const productRouter = (): Router => {
     inventoryRepository,
     productImageRepository,
   );
-  const getProductByIdUseCase = new GetProductByIdUseCase(productRepository);
+  const getProductByIdUseCase = new GetProductByIdUseCase(
+    productRepository,
+    inventoryRepository
+  );
   const getAllProductUseCase = new GetAllProductUseCase(productRepository);
   const getProductsPaginatedUseCase = new GetProductsPaginatedUseCase(
     productRepository,

@@ -10,6 +10,7 @@ export enum PaymentMethod {
   COD = "COD", // Thanh toán khi nhận hàng
   VNPAY = "VNPAY", // Ví VNPay
   MOMO = "MOMO", // Ví MoMo
+  PAYOS = "PAYOS", // Cổng thanh toán PayOS (VietQR)
 }
 
 export enum PaymentStatus {

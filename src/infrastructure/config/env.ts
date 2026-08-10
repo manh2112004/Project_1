@@ -22,4 +22,9 @@ export const config = {
     refreshSecret:
       process.env.JWT_REFRESH_SECRET || "super-secret-refresh-key-54321",
   },
+  payos: {
+    clientId: process.env.PAYOS_CLIENT_ID || "",
+    apiKey: process.env.PAYOS_API_KEY || "",
+    checksumKey: process.env.PAYOS_CHECKSUM_KEY || "",
+  },
 };

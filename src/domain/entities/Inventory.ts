@@ -73,6 +73,17 @@ export class Inventory {
 
     this.updatedAt = new Date();
   }
+  public deductQuantity(amount: number): void {
+    if (amount <= 0) {
+      throw new Error("Số lượng giảm phải lớn hơn 0.");
+    }
+    if (this.quantity < amount) {
+      throw new Error(`Tồn kho không đủ để trừ (Còn lại: ${this.quantity}, cần trừ: ${amount}).`);
+    }
+    this.quantity -= amount;
+    this.updatedAt = new Date();
+  }
+
   public delete(): void {
     this.deletedAt = new Date();
   }

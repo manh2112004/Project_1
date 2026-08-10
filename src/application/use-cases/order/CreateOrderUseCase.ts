@@ -102,9 +102,16 @@ export class CreateOrderUseCase {
       customerNote: dto.customerNote,
     });
 
-    // 7. Thêm các sản phẩm chọn mua vào đơn hàng (Order tự tính tiền & khởi tạo OrderItem)
+    // 7. Thêm các sản phẩm chọn mua vào đơn hàng và trừ kho tồn tương ứng
     for (const item of itemsToOrder) {
       order.addItem(item.productId, item.quantity, item.price);
+      const inventory = inventories.find(
+        (inv) => inv.productId === item.productId
+      );
+      if (inventory) {
+        inventory.deductQuantity(item.quantity);
+        await this.inventoryRepositoty.save(inventory);
+      }
     }
 
     // 8. Lưu đơn hàng vào DB

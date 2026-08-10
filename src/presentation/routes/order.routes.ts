@@ -47,14 +47,23 @@ export const createOrderRouter = (): Router => {
   );
   const getMyOrdersPaginatedUseCase = new GetMyOrdersPaginatedUseCase(orderRepository);
   const getOrderByIdUseCase = new GetOrderByIdUseCase(orderRepository);
-  const cancelMyOrderUseCase = new CancelMyOrderUseCase(orderRepository);
+  const cancelMyOrderUseCase = new CancelMyOrderUseCase(
+    orderRepository,
+    inventoryRepository
+  );
   const updateShippingAddressUseCase = new UpdateShippingAddressUseCase(orderRepository);
   const getOrdersPaginatedUseCase = new GetOrdersPaginatedUseCase(orderRepository);
   const confirmOrderUseCase = new ConfirmOrderUseCase(orderRepository);
   const shipOrderUseCase = new ShipOrderUseCase(orderRepository);
   const markOrderAsDeliveredUseCase = new MarkOrderAsDeliveredUseCase(orderRepository);
-  const markOrderAsPaidUseCase = new MarkOrderAsPaidUseCase(orderRepository);
-  const adminCancelOrderUseCase = new AdminCancelOrderUseCase(orderRepository);
+  const markOrderAsPaidUseCase = new MarkOrderAsPaidUseCase(
+    orderRepository,
+    inventoryRepository
+  );
+  const adminCancelOrderUseCase = new AdminCancelOrderUseCase(
+    orderRepository,
+    inventoryRepository
+  );
 
   // Khởi tạo Controller
   const orderController = new OrderController(

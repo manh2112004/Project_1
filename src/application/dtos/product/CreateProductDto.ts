@@ -25,6 +25,7 @@ export interface ProductResponseDto {
     price: number;
     discountPrice: number | null;
     status: string;
+    stockQuantity?: number;
     createdAt: string;
     updatedAt: string;
 }

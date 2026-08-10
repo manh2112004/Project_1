@@ -1,9 +1,14 @@
 import { IOrderRepository } from "../../../domain/repositories/IOrderRepository";
+import { IInventoryRepository } from "../../../domain/repositories/IInventoryRepository";
+import { OrderStatus } from "../../../domain/constant/OrderEnums";
 import { CancelOrderDto } from "../../dtos/order/CancelOrderDto";
 import { CreateOrderResponseDto } from "../../dtos/order/CreateOrderDto";
 
 export class AdminCancelOrderUseCase {
-  constructor(private readonly orderRepository: IOrderRepository) {}
+  constructor(
+    private readonly orderRepository: IOrderRepository,
+    private readonly inventoryRepository?: IInventoryRepository
+  ) {}
 
   async execute(dto: CancelOrderDto): Promise<CreateOrderResponseDto> {
     const order = await this.orderRepository.findById(dto.orderId);
@@ -11,7 +16,25 @@ export class AdminCancelOrderUseCase {
       throw new Error("Đơn hàng không tồn tại.");
     }
 
+    const previousStatus = order.status;
     order.cancel(dto.cancelReason);
+
+    // Hoàn trả số lượng tồn kho nếu Admin hủy đơn hàng
+    if (
+      previousStatus !== OrderStatus.CANCELLED &&
+      this.inventoryRepository &&
+      order.items &&
+      order.items.length > 0
+    ) {
+      for (const item of order.items) {
+        const inventory = await this.inventoryRepository.findByProductId(item.productId);
+        if (inventory) {
+          inventory.update({ quantity: inventory.quantity + item.quantity });
+          await this.inventoryRepository.save(inventory);
+        }
+      }
+    }
+
     const savedOrder = await this.orderRepository.save(order);
 
     return {

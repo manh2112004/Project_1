@@ -1,8 +1,13 @@
 import { IOrderRepository } from "../../../domain/repositories/IOrderRepository";
+import { IInventoryRepository } from "../../../domain/repositories/IInventoryRepository";
+import { PaymentStatus } from "../../../domain/constant/OrderEnums";
 import { CreateOrderResponseDto } from "../../dtos/order/CreateOrderDto";
 
 export class MarkOrderAsPaidUseCase {
-  constructor(private readonly orderRepository: IOrderRepository) {}
+  constructor(
+    private readonly orderRepository: IOrderRepository,
+    private readonly inventoryRepository?: IInventoryRepository
+  ) { }
 
   async execute(orderId: string): Promise<CreateOrderResponseDto> {
     const order = await this.orderRepository.findById(orderId);
@@ -10,7 +15,22 @@ export class MarkOrderAsPaidUseCase {
       throw new Error("Đơn hàng không tồn tại.");
     }
 
-    order.markAsPaid(); // Cập nhật paymentStatus -> PAID
+    // Nếu đơn hàng chưa được đánh dấu thanh toán
+    if (order.paymentStatus !== PaymentStatus.PAID) {
+      order.markAsPaid(); // Cập nhật paymentStatus -> PAID
+
+      // Thực hiện trừ kho từng sản phẩm trong đơn hàng
+      if (this.inventoryRepository && order.items && order.items.length > 0) {
+        for (const item of order.items) {
+          const inventory = await this.inventoryRepository.findByProductId(item.productId);
+          if (inventory) {
+            inventory.deductQuantity(item.quantity);
+            await this.inventoryRepository.save(inventory);
+          }
+        }
+      }
+    }
+
     const savedOrder = await this.orderRepository.save(order);
 
     return {
