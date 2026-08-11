@@ -9,11 +9,14 @@ import { OrderItemOrmEntity } from "../../database/entities/OrderItemOrmEntity";
 export class TypeOrmOrderRepository implements IOrderRepository {
   constructor(private readonly ormRepository: Repository<OrderOrmEntity>) {}
 
-  async save(order: Order): Promise<Order> {
+  async save(order: Order, transactionalEntityManager?: any): Promise<Order> {
     const orm = this.toOrm(order);
-    const saved = await this.ormRepository.save(orm);
+    const repo = transactionalEntityManager
+      ? transactionalEntityManager.getRepository(OrderOrmEntity)
+      : this.ormRepository;
+    const saved = await repo.save(orm);
     // Fetch với items relations để có đầy đủ dữ liệu
-    const fullOrder = await this.ormRepository.findOne({
+    const fullOrder = await repo.findOne({
       where: { id: saved.id },
       relations: { items: true },
     });

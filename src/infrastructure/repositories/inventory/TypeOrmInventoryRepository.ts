@@ -1,4 +1,4 @@
-import { Repository, In } from "typeorm";
+import { Repository, In, EntityManager } from "typeorm";
 import { Inventory } from "../../../domain/entities/Inventory";
 import { IInventoryRepository } from "../../../domain/repositories/IInventoryRepository";
 import { InventoryOrmEntity } from "../../database/entities/InventoryOrmEntity";
@@ -12,9 +12,35 @@ export class TypeOrmInventoryRepository implements IInventoryRepository {
     return found.map((orm) => this.toDomain(orm));
   }
 
-  async save(inventory: Inventory): Promise<Inventory> {
+  /**
+   * Khóa độc quyền (Pessimistic Write Lock / SELECT FOR UPDATE) trong giao dịch Database
+   */
+  async findByProductIdsWithLock(
+    productIds: string[],
+    transactionalEntityManager?: EntityManager
+  ): Promise<Inventory[]> {
+    if (!productIds || productIds.length === 0) return [];
+
+    const repo = transactionalEntityManager
+      ? transactionalEntityManager.getRepository(InventoryOrmEntity)
+      : this.ormRepository;
+
+    const found = await repo
+      .createQueryBuilder("inventory")
+      .setLock("pessimistic_write") // 🔒 Postgres SELECT FOR UPDATE Lock
+      .where("inventory.productId IN (:...productIds)", { productIds })
+      .getMany();
+
+    return found.map((orm) => this.toDomain(orm));
+  }
+
+  async save(inventory: Inventory, transactionalEntityManager?: EntityManager): Promise<Inventory> {
     const ormEntity = this.toOrm(inventory);
-    const savedOrm = await this.ormRepository.save(ormEntity);
+    const repo = transactionalEntityManager
+      ? transactionalEntityManager.getRepository(InventoryOrmEntity)
+      : this.ormRepository;
+
+    const savedOrm = await repo.save(ormEntity);
     return this.toDomain(savedOrm);
   }
 

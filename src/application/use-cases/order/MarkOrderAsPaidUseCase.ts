@@ -6,8 +6,8 @@ import { CreateOrderResponseDto } from "../../dtos/order/CreateOrderDto";
 export class MarkOrderAsPaidUseCase {
   constructor(
     private readonly orderRepository: IOrderRepository,
-    private readonly inventoryRepository?: IInventoryRepository
-  ) { }
+    private readonly inventoryRepository?: IInventoryRepository,
+  ) {}
 
   async execute(orderId: string): Promise<CreateOrderResponseDto> {
     const order = await this.orderRepository.findById(orderId);
@@ -22,7 +22,9 @@ export class MarkOrderAsPaidUseCase {
       // Thực hiện trừ kho từng sản phẩm trong đơn hàng
       if (this.inventoryRepository && order.items && order.items.length > 0) {
         for (const item of order.items) {
-          const inventory = await this.inventoryRepository.findByProductId(item.productId);
+          const inventory = await this.inventoryRepository.findByProductId(
+            item.productId,
+          );
           if (inventory) {
             inventory.deductQuantity(item.quantity);
             await this.inventoryRepository.save(inventory);
