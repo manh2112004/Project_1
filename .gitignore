@@ -3,8 +3,8 @@ node_modules/
 jspm_packages/
 
 # Environment variables / File cấu hình bảo mật
-.env
-.env.local
+.env.production
+.env.staging
 .env.development.local
 .env.test.local
 .env.production.local
@@ -42,3 +42,4 @@ Thumbs.db
 .eslintcache
 .stylelintcache
 FRONTEND_INTEGRATION_GUIDE.md
+src/infrastructure/database/cli/
