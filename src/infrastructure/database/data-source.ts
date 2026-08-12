@@ -14,6 +14,8 @@ import { UserAddressOrmEntity } from "./entities/UserAddressOrmEntity";
 import { OrderOrmEntity } from "./entities/OrderOrmEntity";
 import { OrderItemOrmEntity } from "./entities/OrderItemOrmEntity";
 import { UserSocialAccountOrmEntity } from "./entities/UserSocialAccountOrmEntity";
+import { StoreOrmEntity } from "./entities/StoreOrmEntity";
+import { StoreAddressOrmEntity } from "./entities/StoreAddressOrmEntity";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -37,6 +39,8 @@ export const AppDataSource = new DataSource({
     OrderOrmEntity,
     OrderItemOrmEntity,
     UserSocialAccountOrmEntity,
+    StoreOrmEntity,
+    StoreAddressOrmEntity,
   ],
   migrations: [__dirname + "/migrations/*{.ts,.js}"],
   subscribers: [],
