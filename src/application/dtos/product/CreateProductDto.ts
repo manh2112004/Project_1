@@ -1,4 +1,5 @@
 export interface CreateProductDto {
+    storeId?: string | null;
     categoryId: string;
     brandId: string;
     name: string;
@@ -14,6 +15,7 @@ export interface CreateProductDto {
 
 export interface ProductResponseDto {
     id: string;
+    storeId?: string | null;
     categoryId: string;
     brandId: string;
     name: string;
@@ -25,6 +27,7 @@ export interface ProductResponseDto {
     price: number;
     discountPrice: number | null;
     status: string;
+    store?: any;
     stockQuantity?: number;
     createdAt: string;
     updatedAt: string;

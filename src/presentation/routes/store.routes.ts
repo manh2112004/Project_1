@@ -17,6 +17,10 @@ import {
   ToggleVacationModeUseCase,
   UpdateStoreLegalInfoUseCase,
 } from "../../application/use-cases/store/ManageStoreUseCases";
+import { UserOrmEntity } from "../../infrastructure/database/entities/UserOrmEntity";
+import { RoleOrmEntity } from "../../infrastructure/database/entities/RoleOrmEntity";
+import { TypeOrmUserRepository } from "../../infrastructure/repositories/user/TypeOrmUserRepository";
+import { TypeOrmRoleRepository } from "../../infrastructure/repositories/role/TypeOrmRoleRepository";
 import { StoreController } from "../controllers/StoreController";
 import { authenticate } from "../middlewares/authenticate";
 import { authorizeRoles } from "../middlewares/authorize";
@@ -25,14 +29,19 @@ export const createStoreRouter = (): Router => {
   const router = Router();
 
   const storeOrmRepo = AppDataSource.getRepository(StoreOrmEntity);
+  const userOrmRepo = AppDataSource.getRepository(UserOrmEntity);
+  const roleOrmRepo = AppDataSource.getRepository(RoleOrmEntity);
+
   const storeRepo = new TypeOrmStoreRepository(storeOrmRepo);
+  const userRepo = new TypeOrmUserRepository(userOrmRepo);
+  const roleRepo = new TypeOrmRoleRepository(roleOrmRepo);
 
   const registerStoreUseCase = new RegisterStoreUseCase(storeRepo);
   const getStoreByIdUseCase = new GetStoreByIdUseCase(storeRepo);
   const getStoreByUserIdUseCase = new GetStoreByUserIdUseCase(storeRepo);
   const getStoresPaginatedUseCase = new GetStoresPaginatedUseCase(storeRepo);
   const updateStoreProfileUseCase = new UpdateStoreProfileUseCase(storeRepo);
-  const approveStoreUseCase = new ApproveStoreUseCase(storeRepo);
+  const approveStoreUseCase = new ApproveStoreUseCase(storeRepo, userRepo, roleRepo);
   const suspendStoreUseCase = new SuspendStoreUseCase(storeRepo);
   const rejectStoreUseCase = new RejectStoreUseCase(storeRepo);
   const reactivateStoreUseCase = new ReactivateStoreUseCase(storeRepo);
@@ -53,16 +62,16 @@ export const createStoreRouter = (): Router => {
     updateStoreLegalInfoUseCase
   );
 
+  // User / Seller Authenticated Endpoints
+  router.post("/register", authenticate, (req, res) => storeController.register(req, res));
+  router.get("/me", authenticate, (req, res) => storeController.getMyStore(req, res));
+  router.put("/profile", authenticate, (req, res) => storeController.updateProfile(req, res));
+  router.put("/legal-info", authenticate, (req, res) => storeController.updateLegalInfo(req, res));
+  router.patch("/vacation", authenticate, (req, res) => storeController.toggleVacation(req, res));
+
   // Public Endpoints
   router.get("/paginated", (req, res) => storeController.getPaginated(req, res));
   router.get("/:id", (req, res) => storeController.getById(req, res));
-
-  // User / Seller Authenticated Endpoints
-  router.post("/register", authenticate, (req, res) => storeController.register(req, res));
-  router.get("/me", authenticate, authorizeRoles("SELLER", "SUPER_ADMIN", "ADMIN"), (req, res) => storeController.getMyStore(req, res));
-  router.put("/profile", authenticate, authorizeRoles("SELLER", "SUPER_ADMIN", "ADMIN"), (req, res) => storeController.updateProfile(req, res));
-  router.put("/legal-info", authenticate, authorizeRoles("SELLER", "SUPER_ADMIN", "ADMIN"), (req, res) => storeController.updateLegalInfo(req, res));
-  router.patch("/vacation", authenticate, authorizeRoles("SELLER", "SUPER_ADMIN", "ADMIN"), (req, res) => storeController.toggleVacation(req, res));
 
   // Admin / Staff Management Endpoints
   router.patch("/:id/approve", authenticate, authorizeRoles("SUPER_ADMIN", "ADMIN"), (req, res) => storeController.approve(req, res));

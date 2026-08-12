@@ -10,7 +10,7 @@ import { StoreAddressOrmEntity } from "../../database/entities/StoreAddressOrmEn
 export class TypeOrmStoreRepository implements IStoreRepository {
   constructor(
     private readonly ormRepository: Repository<StoreOrmEntity>
-  ) {}
+  ) { }
 
   async save(store: Store): Promise<Store> {
     const orm = this.toOrm(store);
@@ -72,10 +72,10 @@ export class TypeOrmStoreRepository implements IStoreRepository {
       queryBuilder.andWhere("store.status = :status", { status });
     }
 
-    if (search) {
+    if (search && search.trim().length > 0) {
       queryBuilder.andWhere(
-        "(unaccent(store.name) ILIKE unaccent(:search) OR store.contactEmail ILIKE :search OR store.contactPhone ILIKE :search)",
-        { search: `%${search}%` }
+        "(store.name ILIKE :search OR store.contactEmail ILIKE :search OR store.contactPhone ILIKE :search)",
+        { search: `%${search.trim()}%` }
       );
     }
 
@@ -98,29 +98,29 @@ export class TypeOrmStoreRepository implements IStoreRepository {
   private toDomain(orm: StoreOrmEntity): Store {
     const addresses = orm.addresses
       ? orm.addresses.map(
-          (addr) =>
-            new StoreAddress({
-              id: addr.id,
-              storeId: addr.storeId,
-              contactName: addr.contactName,
-              phoneNumber: addr.phoneNumber,
-              addressLine1: addr.addressLine1,
-              addressLine2: addr.addressLine2,
-              ward: addr.ward,
-              district: addr.district,
-              city: addr.city,
-              country: addr.country ?? "Việt Nam",
-              postalCode: addr.postalCode,
-              latitude: addr.latitude,
-              longitude: addr.longitude,
-              isDefaultPickup: addr.isDefaultPickup,
-              isDefaultReturn: addr.isDefaultReturn,
-              isDefault: addr.isDefault,
-              createdAt: addr.createdAt,
-              updatedAt: addr.updatedAt,
-              deletedAt: addr.deletedAt,
-            })
-        )
+        (addr) =>
+          new StoreAddress({
+            id: addr.id,
+            storeId: addr.storeId,
+            contactName: addr.contactName,
+            phoneNumber: addr.phoneNumber,
+            addressLine1: addr.addressLine1,
+            addressLine2: addr.addressLine2,
+            ward: addr.ward,
+            district: addr.district,
+            city: addr.city,
+            country: addr.country ?? "Việt Nam",
+            postalCode: addr.postalCode,
+            latitude: addr.latitude,
+            longitude: addr.longitude,
+            isDefaultPickup: addr.isDefaultPickup,
+            isDefaultReturn: addr.isDefaultReturn,
+            isDefault: addr.isDefault,
+            createdAt: addr.createdAt,
+            updatedAt: addr.updatedAt,
+            deletedAt: addr.deletedAt,
+          })
+      )
       : [];
 
     return new Store({

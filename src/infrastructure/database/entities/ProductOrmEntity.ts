@@ -10,8 +10,10 @@ import {
 } from "typeorm";
 import { CategoryOrmEntity } from "./CategoryOrmEntity";
 import { BrandOrmEntity } from "./BrandOrmEntity";
+import { StoreOrmEntity } from "./StoreOrmEntity";
+
 const numericTransformer = {
-    //Dùng khi GHI dữ liệu (Object -> Database
+    //Dùng khi GHI dữ liệu (Object -> Database)
     to: (value: number | null) => value,
     //Dùng khi ĐỌC dữ liệu (Database -> Object)
     from: (value: string | null) => (value !== null ? parseFloat(value) : null),
@@ -21,6 +23,9 @@ const numericTransformer = {
 export class ProductOrmEntity {
     @PrimaryGeneratedColumn("uuid")
     id!: string;
+
+    @Column({ name: "store_id", type: "uuid", nullable: true })
+    storeId!: string | null;
 
     @Column({ name: "category_id", type: "varchar" })
     categoryId!: string;
@@ -76,7 +81,10 @@ export class ProductOrmEntity {
     @DeleteDateColumn({ name: "deleted_at", type: "timestamp", nullable: true })
     deletedAt!: Date | null;
 
-    
+    @ManyToOne(() => StoreOrmEntity, { onDelete: "SET NULL", nullable: true })
+    @JoinColumn({ name: "store_id" })
+    store?: StoreOrmEntity;
+
     @ManyToOne(() => CategoryOrmEntity, { onDelete: "RESTRICT" })
     @JoinColumn({ name: "category_id" })
     category!: CategoryOrmEntity;

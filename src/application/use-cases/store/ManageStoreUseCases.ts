@@ -1,5 +1,7 @@
 import { Store } from "../../../domain/entities/Store";
 import { IStoreRepository } from "../../../domain/repositories/IStoreRepository";
+import { IUserRepository } from "../../../domain/repositories/IUserRepository";
+import { IRoleRepository } from "../../../domain/repositories/IRoleRepository";
 import {
   UpdateStoreProfileDto,
   UpdateStoreLegalInfoDto,
@@ -8,7 +10,7 @@ import {
 } from "../../dtos/store/StoreDto";
 
 export class UpdateStoreProfileUseCase {
-  constructor(private readonly storeRepository: IStoreRepository) {}
+  constructor(private readonly storeRepository: IStoreRepository) { }
 
   async execute(storeId: string, dto: UpdateStoreProfileDto): Promise<Store> {
     const store = await this.storeRepository.findById(storeId);
@@ -20,7 +22,9 @@ export class UpdateStoreProfileUseCase {
     if (dto.name && dto.name.trim() !== store.name) {
       const existing = await this.storeRepository.findByName(dto.name);
       if (existing && existing.id !== storeId) {
-        throw new Error("Tên cửa hàng đã tồn tại trên hệ thống. Vui lòng chọn tên khác.");
+        throw new Error(
+          "Tên cửa hàng đã tồn tại trên hệ thống. Vui lòng chọn tên khác.",
+        );
       }
     }
 
@@ -36,7 +40,11 @@ export class UpdateStoreProfileUseCase {
 }
 
 export class ApproveStoreUseCase {
-  constructor(private readonly storeRepository: IStoreRepository) {}
+  constructor(
+    private readonly storeRepository: IStoreRepository,
+    private readonly userRepository?: IUserRepository,
+    private readonly roleRepository?: IRoleRepository,
+  ) { }
 
   async execute(storeId: string): Promise<Store> {
     const store = await this.storeRepository.findById(storeId);
@@ -45,12 +53,33 @@ export class ApproveStoreUseCase {
     }
 
     store.approve();
-    return await this.storeRepository.save(store);
+    const savedStore = await this.storeRepository.save(store);
+
+    if (this.userRepository && this.roleRepository) {
+      try {
+        const user = await this.userRepository.findById(store.userId);
+        let sellerRole =
+          (await this.roleRepository.findByCode("SELLER")) ||
+          (await this.roleRepository.findByName("Seller"));
+
+        if (user && sellerRole) {
+          user.changeRole(sellerRole.id);
+          await this.userRepository.save(user);
+        }
+      } catch (err) {
+        console.warn(
+          "Không thể nâng cấp vai trò chủ store thành SELLER khi duyệt:",
+          err,
+        );
+      }
+    }
+
+    return savedStore;
   }
 }
 
 export class SuspendStoreUseCase {
-  constructor(private readonly storeRepository: IStoreRepository) {}
+  constructor(private readonly storeRepository: IStoreRepository) { }
 
   async execute(storeId: string, dto: SuspendStoreDto): Promise<Store> {
     const store = await this.storeRepository.findById(storeId);
@@ -64,7 +93,7 @@ export class SuspendStoreUseCase {
 }
 
 export class RejectStoreUseCase {
-  constructor(private readonly storeRepository: IStoreRepository) {}
+  constructor(private readonly storeRepository: IStoreRepository) { }
 
   async execute(storeId: string, dto: RejectStoreDto): Promise<Store> {
     const store = await this.storeRepository.findById(storeId);
@@ -78,7 +107,7 @@ export class RejectStoreUseCase {
 }
 
 export class ReactivateStoreUseCase {
-  constructor(private readonly storeRepository: IStoreRepository) {}
+  constructor(private readonly storeRepository: IStoreRepository) { }
 
   async execute(storeId: string): Promise<Store> {
     const store = await this.storeRepository.findById(storeId);
@@ -92,7 +121,7 @@ export class ReactivateStoreUseCase {
 }
 
 export class ToggleVacationModeUseCase {
-  constructor(private readonly storeRepository: IStoreRepository) {}
+  constructor(private readonly storeRepository: IStoreRepository) { }
 
   async execute(storeId: string, isOnVacation: boolean): Promise<Store> {
     const store = await this.storeRepository.findById(storeId);
@@ -111,7 +140,7 @@ export class ToggleVacationModeUseCase {
 }
 
 export class UpdateStoreLegalInfoUseCase {
-  constructor(private readonly storeRepository: IStoreRepository) {}
+  constructor(private readonly storeRepository: IStoreRepository) { }
 
   async execute(storeId: string, dto: UpdateStoreLegalInfoDto): Promise<Store> {
     const store = await this.storeRepository.findById(storeId);
@@ -127,7 +156,9 @@ export class UpdateStoreLegalInfoUseCase {
     }
 
     if (dto.identityNumber && dto.identityNumber.trim().length > 0) {
-      const existingId = await this.storeRepository.findByIdentityNumber(dto.identityNumber);
+      const existingId = await this.storeRepository.findByIdentityNumber(
+        dto.identityNumber,
+      );
       if (existingId && existingId.id !== storeId) {
         throw new Error("Số CCCD/CMND này đã được đăng ký bởi cửa hàng khác.");
       }

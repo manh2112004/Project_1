@@ -14,6 +14,7 @@ export interface ProductProps {
     price: number;
     discountPrice?: number | null;
     status?: string;
+    store?: any;
     createdAt?: Date;
     updatedAt?: Date;
     deletedAt?: Date | null;
@@ -49,6 +50,7 @@ export class Product {
     public price: number;
     public discountPrice: number | null;
     public status: string;
+    public store?: any;
     public readonly createdAt: Date;
     public updatedAt: Date;
     public deletedAt: Date | null;
@@ -67,6 +69,7 @@ export class Product {
         this.price = props.price;
         this.discountPrice = props.discountPrice ?? null;
         this.status = props.status || "ACTIVE";
+        this.store = props.store;
         this.createdAt = props.createdAt || new Date();
         this.updatedAt = props.updatedAt || new Date();
         this.deletedAt = props.deletedAt || null;

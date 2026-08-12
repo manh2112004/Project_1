@@ -49,8 +49,8 @@ export const createStoreAddressRouter = (): Router => {
     controller.getByStoreId(req, res),
   );
 
-  // Bảo vệ các endpoints quản lý kho hàng bằng JWT authenticate & authorizeRoles
-  router.use(authenticate, authorizeRoles("SELLER", "SUPER_ADMIN", "ADMIN"));
+  // Bảo vệ các endpoints quản lý kho hàng bằng JWT authenticate
+  router.use(authenticate);
 
   router.post("/", (req, res) => controller.create(req, res));
   router.put("/:id", (req, res) => controller.update(req, res));

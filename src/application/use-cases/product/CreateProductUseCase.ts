@@ -45,6 +45,7 @@ export class CreateProductUseCase {
 
     // 5. Tạo Domain Entity
     const product = Product.create({
+      storeId: dto.storeId,
       categoryId: dto.categoryId,
       brandId: dto.brandId,
       name: dto.name,
@@ -64,6 +65,7 @@ export class CreateProductUseCase {
     // 7. Trả về Response DTO
     return {
       id: savedProduct.id,
+      storeId: savedProduct.storeId,
       categoryId: savedProduct.categoryId,
       brandId: savedProduct.brandId,
       name: savedProduct.name,
@@ -75,6 +77,7 @@ export class CreateProductUseCase {
       price: savedProduct.price,
       discountPrice: savedProduct.discountPrice,
       status: savedProduct.status,
+      store: savedProduct.store,
       createdAt: savedProduct.createdAt.toISOString(),
       updatedAt: savedProduct.updatedAt.toISOString(),
     };

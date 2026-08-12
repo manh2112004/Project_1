@@ -65,6 +65,7 @@ export class UpdateProductUseCase {
         // 6. Cập nhật trạng thái thực thể Domain
         product.update({
             id: dto.id,
+            storeId: dto.storeId,
             categoryId: dto.categoryId,
             brandId: dto.brandId,
             name: dto.name,
@@ -84,6 +85,7 @@ export class UpdateProductUseCase {
         // 8. Trả về Response DTO
         return {
             id: savedProduct.id,
+            storeId: savedProduct.storeId,
             categoryId: savedProduct.categoryId,
             brandId: savedProduct.brandId,
             name: savedProduct.name,

@@ -5,6 +5,8 @@ import { DeleteProductUseCase } from "../../application/use-cases/product/Delete
 import { GetProductByIdUseCase } from "../../application/use-cases/product/GetProductByIdUseCase";
 import { GetAllProductUseCase } from "../../application/use-cases/product/GetAllProductUseCase";
 import { GetProductsPaginatedUseCase } from "../../application/use-cases/product/GetProductsPaginatedUseCase";
+import { GetProductsByStoreIdUseCase } from "../../application/use-cases/product/GetProductsByStoreIdUseCase";
+import { GetStoreByUserIdUseCase } from "../../application/use-cases/store/StoreQueryUseCases";
 import { sseManager } from "../../infrastructure/services/SseManager";
 
 export class ProductController {
@@ -15,11 +17,14 @@ export class ProductController {
     private readonly getProductByIdUseCase: GetProductByIdUseCase,
     private readonly getAllProductUseCase: GetAllProductUseCase,
     private readonly getProductsPaginatedUseCase: GetProductsPaginatedUseCase,
+    private readonly getProductsByStoreIdUseCase?: GetProductsByStoreIdUseCase,
+    private readonly getStoreByUserIdUseCase?: GetStoreByUserIdUseCase,
   ) {}
 
   async create(req: Request, res: Response): Promise<void> {
     try {
       const {
+        storeId,
         categoryId,
         brandId,
         name,
@@ -33,7 +38,34 @@ export class ProductController {
         status,
       } = req.body;
 
+      let targetStoreId = storeId;
+      const currentUser = (req as any).user;
+      const isAdmin =
+        currentUser?.email === "admin@system.com" ||
+        currentUser?.roleCode === "SUPER_ADMIN" ||
+        currentUser?.roleCode === "ADMIN";
+
+      if (!isAdmin && currentUser && this.getStoreByUserIdUseCase) {
+        const store = await this.getStoreByUserIdUseCase.execute(currentUser.id);
+        if (!store) {
+          res.status(403).json({
+            success: false,
+            message: "Bạn chưa đăng ký gian hàng nên không thể tạo sản phẩm.",
+          });
+          return;
+        }
+        if (store.status !== "ACTIVE") {
+          res.status(403).json({
+            success: false,
+            message: "Gian hàng của bạn chưa được duyệt hoặc đang bị khóa, không thể đăng sản phẩm.",
+          });
+          return;
+        }
+        targetStoreId = store.id;
+      }
+
       const product = await this.createProductUseCase.execute({
+        storeId: targetStoreId,
         categoryId,
         brandId,
         name,
@@ -181,6 +213,26 @@ export class ProductController {
       res.status(400).json({
         success: false,
         message: error.message || "Lỗi phân trang sản phẩm.",
+      });
+    }
+  }
+
+  async getByStoreId(req: Request, res: Response): Promise<void> {
+    try {
+      const storeId = Array.isArray(req.params.storeId) ? req.params.storeId[0] : req.params.storeId;
+      if (!this.getProductsByStoreIdUseCase) {
+        res.status(500).json({ success: false, message: "GetProductsByStoreIdUseCase chưa được khởi tạo." });
+        return;
+      }
+      const products = await this.getProductsByStoreIdUseCase.execute(storeId);
+      res.status(200).json({
+        success: true,
+        data: products,
+      });
+    } catch (error: any) {
+      res.status(400).json({
+        success: false,
+        message: error.message || "Lỗi lấy danh sách sản phẩm theo cửa hàng.",
       });
     }
   }

@@ -1,5 +1,6 @@
 export interface UpdateProductDto {
     id: string;
+    storeId?: string | null;
     categoryId?: string;
     brandId?: string;
     name?: string;
@@ -15,6 +16,7 @@ export interface UpdateProductDto {
 
 export interface UpdateProductResponse {
     id: string;
+    storeId?: string | null;
     categoryId: string;
     brandId: string;
     name: string;

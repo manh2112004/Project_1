@@ -17,6 +17,10 @@ import { InventoryOrmEntity } from "../../infrastructure/database/entities/Inven
 import { ProductImageOrmEntity } from "../../infrastructure/database/entities/ProductImageOrmEntity";
 import { TypeOrmProductImageRepository } from "../../infrastructure/repositories/product-image/TypeOrmProductImageRepository";
 import { GetProductsPaginatedUseCase } from "../../application/use-cases/product/GetProductsPaginatedUseCase";
+import { GetProductsByStoreIdUseCase } from "../../application/use-cases/product/GetProductsByStoreIdUseCase";
+import { StoreOrmEntity } from "../../infrastructure/database/entities/StoreOrmEntity";
+import { TypeOrmStoreRepository } from "../../infrastructure/repositories/store/TypeOrmStoreRepository";
+import { GetStoreByUserIdUseCase } from "../../application/use-cases/store/StoreQueryUseCases";
 import { authenticate } from "../middlewares/authenticate";
 import { authorize } from "../middlewares/authorize";
 
@@ -31,6 +35,7 @@ export const productRouter = (): Router => {
   const productImageOrmRepository = AppDataSource.getRepository(
     ProductImageOrmEntity,
   );
+  const storeOrmRepository = AppDataSource.getRepository(StoreOrmEntity);
 
   const productRepository = new TypeOrmProductRepository(productOrmRepository);
   const categoryRepository = new TypeOrmCategoryRepository(
@@ -43,6 +48,7 @@ export const productRouter = (): Router => {
   const productImageRepository = new TypeOrmProductImageRepository(
     productImageOrmRepository,
   );
+  const storeRepository = new TypeOrmStoreRepository(storeOrmRepository);
 
   // 2. Use Cases
   const createProductUseCase = new CreateProductUseCase(
@@ -68,6 +74,10 @@ export const productRouter = (): Router => {
   const getProductsPaginatedUseCase = new GetProductsPaginatedUseCase(
     productRepository,
   );
+  const getProductsByStoreIdUseCase = new GetProductsByStoreIdUseCase(
+    productRepository,
+  );
+  const getStoreByUserIdUseCase = new GetStoreByUserIdUseCase(storeRepository);
 
   // 3. Controller
   const productController = new ProductController(
@@ -77,11 +87,16 @@ export const productRouter = (): Router => {
     getProductByIdUseCase,
     getAllProductUseCase,
     getProductsPaginatedUseCase,
+    getProductsByStoreIdUseCase,
+    getStoreByUserIdUseCase,
   );
 
   // Public GET endpoints
   productRouterInstance.get("/paginated", (req, res) =>
     productController.getPaginated(req, res),
+  );
+  productRouterInstance.get("/store/:storeId", (req, res) =>
+    productController.getByStoreId(req, res),
   );
   productRouterInstance.get("/:id", (req, res) =>
     productController.getById(req, res),
@@ -92,7 +107,6 @@ export const productRouter = (): Router => {
   productRouterInstance.post(
     "/",
     authenticate,
-    authorize("CREATE_PRODUCT"),
     (req, res) => productController.create(req, res),
   );
   productRouterInstance.put(

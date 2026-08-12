@@ -1,5 +1,6 @@
 import { IProductRepository } from "../../../domain/repositories/IProductRepository";
 import { ProductResponseDto } from "../../dtos/product/CreateProductDto";
+
 export interface PaginatedProductsResponse {
   products: ProductResponseDto[];
   meta: {
@@ -9,8 +10,10 @@ export interface PaginatedProductsResponse {
     limit: number;
   };
 }
+
 export class GetProductsPaginatedUseCase {
   constructor(private readonly productRepository: IProductRepository) {}
+
   async execute(
     page: number,
     limit: number,
@@ -24,9 +27,11 @@ export class GetProductsPaginatedUseCase {
       search,
     );
     const totalPages = Math.ceil(totalCount / validLimit);
+
     return {
       products: products.map((product) => ({
         id: product.id,
+        storeId: product.storeId,
         categoryId: product.categoryId,
         brandId: product.brandId,
         name: product.name,
@@ -38,6 +43,7 @@ export class GetProductsPaginatedUseCase {
         price: product.price,
         discountPrice: product.discountPrice,
         status: product.status,
+        store: product.store,
         createdAt: product.createdAt.toISOString(),
         updatedAt: product.updatedAt.toISOString(),
       })),

@@ -15,7 +15,9 @@ export class RegisterStoreUseCase {
     // Kiểm tra trùng tên cửa hàng
     const existingName = await this.storeRepository.findByName(dto.name);
     if (existingName) {
-      throw new Error("Tên cửa hàng đã tồn tại trên hệ thống. Vui lòng chọn tên khác.");
+      throw new Error(
+        "Tên cửa hàng đã tồn tại trên hệ thống. Vui lòng chọn tên khác.",
+      );
     }
 
     // Nếu có mã số thuế thì kiểm tra trùng mã số thuế
@@ -28,7 +30,9 @@ export class RegisterStoreUseCase {
 
     // Nếu có số CCCD/CMND thì kiểm tra trùng CCCD/CMND
     if (dto.identityNumber && dto.identityNumber.trim().length > 0) {
-      const existingId = await this.storeRepository.findByIdentityNumber(dto.identityNumber);
+      const existingId = await this.storeRepository.findByIdentityNumber(
+        dto.identityNumber,
+      );
       if (existingId) {
         throw new Error("Số CCCD/CMND này đã được đăng ký bởi cửa hàng khác.");
       }

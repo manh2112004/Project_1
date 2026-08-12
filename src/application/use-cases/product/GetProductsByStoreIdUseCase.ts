@@ -1,12 +1,11 @@
 import { IProductRepository } from "../../../domain/repositories/IProductRepository";
 import { ProductResponseDto } from "../../dtos/product/CreateProductDto";
 
-export class GetAllProductUseCase {
+export class GetProductsByStoreIdUseCase {
   constructor(private readonly productRepository: IProductRepository) {}
 
-  async execute(search?: string): Promise<ProductResponseDto[]> {
-    const products = await this.productRepository.searchByNameOrSlug(search);
-
+  async execute(storeId: string): Promise<ProductResponseDto[]> {
+    const products = await this.productRepository.findByStoreId(storeId);
     return products.map((product) => ({
       id: product.id,
       storeId: product.storeId,

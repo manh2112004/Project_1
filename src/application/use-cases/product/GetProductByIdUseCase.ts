@@ -24,6 +24,7 @@ export class GetProductByIdUseCase {
 
     return {
       id: product.id,
+      storeId: product.storeId,
       categoryId: product.categoryId,
       brandId: product.brandId,
       name: product.name,
@@ -35,6 +36,7 @@ export class GetProductByIdUseCase {
       price: product.price,
       discountPrice: product.discountPrice,
       status: product.status,
+      store: product.store,
       stockQuantity,
       createdAt: product.createdAt.toISOString(),
       updatedAt: product.updatedAt.toISOString(),
