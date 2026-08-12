@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 
 export interface ProductProps {
     id?: string;
+    storeId?: string | null;
     categoryId: string;
     brandId: string;
     name: string;
@@ -20,6 +21,7 @@ export interface ProductProps {
 
 export interface UpdateProductProps {
     id: string;
+    storeId?: string | null;
     categoryId?: string;
     brandId?: string;
     name?: string;
@@ -35,6 +37,7 @@ export interface UpdateProductProps {
 
 export class Product {
     public readonly id: string;
+    public storeId: string | null;
     public categoryId: string;
     public brandId: string;
     public name: string;
@@ -52,6 +55,7 @@ export class Product {
 
     constructor(props: ProductProps) {
         this.id = props.id || randomUUID();
+        this.storeId = props.storeId ?? null;
         this.categoryId = props.categoryId;
         this.brandId = props.brandId;
         this.name = props.name;
@@ -69,6 +73,7 @@ export class Product {
     }
 
     public static create(props: {
+        storeId?: string | null;
         categoryId: string;
         brandId: string;
         name: string;
@@ -104,6 +109,7 @@ export class Product {
             : Product.slugify(props.name);
 
         return new Product({
+            storeId: props.storeId,
             categoryId: props.categoryId,
             brandId: props.brandId,
             name: props.name.trim(),
@@ -155,6 +161,7 @@ export class Product {
             }
             this.sku = props.sku.trim().toUpperCase();
         }
+        this.storeId = props.storeId !== undefined ? props.storeId : this.storeId;
         this.categoryId = props.categoryId !== undefined ? props.categoryId : this.categoryId;
         this.brandId = props.brandId !== undefined ? props.brandId : this.brandId;
         this.shortDescription = props.shortDescription !== undefined ? props.shortDescription : this.shortDescription;

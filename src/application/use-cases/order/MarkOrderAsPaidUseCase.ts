@@ -7,7 +7,7 @@ export class MarkOrderAsPaidUseCase {
   constructor(
     private readonly orderRepository: IOrderRepository,
     private readonly inventoryRepository?: IInventoryRepository,
-  ) {}
+  ) { }
 
   async execute(orderId: string): Promise<CreateOrderResponseDto> {
     const order = await this.orderRepository.findById(orderId);

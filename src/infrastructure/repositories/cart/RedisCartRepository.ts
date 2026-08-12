@@ -4,10 +4,10 @@ import { Cart } from "../../../domain/entities/Cart";
 import { RedisCartMapper } from "../../mappers/RedisCartMapper";
 
 export class RedisCartRepository implements ICartRepository {
-  // Đặt thời gian hết hạn giỏ hàng
+  // Đặt thời gian hết hạn giỏ hàng (30 ngày)
   private readonly CART_TTL_SECONDS = 30 * 24 * 60 * 60;
 
-  constructor(private readonly redis: Redis) {}
+  constructor(private readonly redis: Redis) { }
 
   /** Đặt tên Key chuẩn trong Redis: cart:user:<userId> */
   private getCartKey(userId: string): string {
@@ -16,6 +16,14 @@ export class RedisCartRepository implements ICartRepository {
 
   async save(cart: Cart): Promise<Cart> {
     const key = this.getCartKey(cart.userId);
+
+    // ⚡ TỐI ƯU BỘ NHỚ REDIS:
+    // Nếu giỏ hàng rỗng (không còn sản phẩm nào) -> Xóa hẳn Key khỏi Redis
+    if (cart.isEmpty || cart.items.length === 0) {
+      await this.redis.del(key);
+      return cart;
+    }
+
     const jsonData = RedisCartMapper.toRedisJson(cart);
 
     // Lưu vào Redis kèm thời gian hết hạn (EX)
@@ -36,15 +44,13 @@ export class RedisCartRepository implements ICartRepository {
   }
 
   async findById(id: string): Promise<Cart | null> {
-    // Với Redis, ta thường query theo userId để tối ưu tốc độ O(1)
-    // Nếu muốn tìm theo id, ta có thể lưu thêm index key "cart:id:<id>" -> userId
     throw new Error(
-      "Khuyến nghị dùng findByUserId đối với Redis Cart Repository.",
+      "Khuyến nghị dùng findByUserId đối với Redis Cart Repository."
     );
   }
 
-  async delete(id: string): Promise<void> {
-    // Triển khai xóa theo id nếu cần
+  async delete(userId: string): Promise<void> {
+    await this.clearByUserId(userId);
   }
 
   async clearByUserId(userId: string): Promise<void> {

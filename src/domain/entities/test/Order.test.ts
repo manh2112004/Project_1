@@ -166,7 +166,7 @@ describe("Order Domain Entity (Aggregate Root)", () => {
     it("nên đánh dấu thanh toán thành công và tự động chuyển PENDING -> PROCESSING", () => {
       const order = Order.create({
         ...validProps,
-        paymentMethod: PaymentMethod.VNPAY,
+        paymentMethod: PaymentMethod.PAYOS,
       });
 
       order.markAsPaid();

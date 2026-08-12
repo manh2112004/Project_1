@@ -3,11 +3,7 @@ node_modules/
 jspm_packages/
 
 # Environment variables / File cấu hình bảo mật
-.env.production
-.env.staging
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
 
 # Build / Output outputs (Vite, TypeScript, Webpack, etc.)
 dist/

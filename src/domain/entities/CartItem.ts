@@ -3,6 +3,7 @@ import { Entity } from "../common/Entity";
 export interface CartItemProps {
   id?: string;
   cartId: string;
+  storeId?: string | null;
   productId: string;
   quantity: number;
   price: number;
@@ -13,6 +14,7 @@ export interface CartItemProps {
 
 export class CartItem extends Entity {
   private readonly _cartId: string;
+  private readonly _storeId: string | null;
   private readonly _productId: string;
   private _quantity: number;
   private _price: number;
@@ -34,6 +36,7 @@ export class CartItem extends Entity {
     }
 
     this._cartId = props.cartId;
+    this._storeId = props.storeId ?? null;
     this._productId = props.productId;
     this._quantity = props.quantity;
     this._price = props.price;
@@ -41,6 +44,7 @@ export class CartItem extends Entity {
 
   public static create(props: {
     cartId: string;
+    storeId?: string | null;
     productId: string;
     quantity: number;
     price: number;
@@ -50,6 +54,10 @@ export class CartItem extends Entity {
 
   public get cartId(): string {
     return this._cartId;
+  }
+
+  public get storeId(): string | null {
+    return this._storeId;
   }
 
   public get productId(): string {
