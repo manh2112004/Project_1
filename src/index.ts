@@ -17,6 +17,8 @@ import { createUserAddressRouter } from "./presentation/routes/user-address.rout
 import { createCartRouter } from "./presentation/routes/cart.routes";
 import { createOrderRouter } from "./presentation/routes/order.routes";
 import { createPaymentRouter } from "./presentation/routes/payment.routes";
+import { createStoreRouter } from "./presentation/routes/store.routes";
+import { createStoreAddressRouter } from "./presentation/routes/store-address.routes";
 const startServer = async () => {
   const app = express();
   app.use(cors());
@@ -37,6 +39,8 @@ const startServer = async () => {
   app.use("/api/cart", createCartRouter());
   app.use("/api/orders", createOrderRouter());
   app.use("/api/payments", createPaymentRouter());
+  app.use("/api/stores", createStoreRouter());
+  app.use("/api/store-addresses", createStoreAddressRouter());
   app.listen(config.port, () => {
     console.log(
       ` Server đang chạy thành công tại: http://localhost:${config.port}`,
