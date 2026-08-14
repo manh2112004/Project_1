@@ -124,13 +124,14 @@ export class TypeOrmProductRepository implements IProductRepository {
   private toDomain(orm: ProductOrmEntity): Product {
     const storeInfo = orm.store
       ? {
-          id: orm.store.id,
-          name: orm.store.name,
-          logo: orm.store.logo,
-          contactPhone: orm.store.contactPhone,
-          contactEmail: orm.store.contactEmail,
-          status: orm.store.status,
-        }
+        id: orm.store.id,
+        name: orm.store.name,
+        logo: orm.store.logo,
+        contactPhone: orm.store.contactPhone,
+        contactEmail: orm.store.contactEmail,
+        status: orm.store.status,
+        isOnVacation: orm.store.isOnVacation,
+      }
       : undefined;
 
     return new Product({

@@ -109,6 +109,38 @@ export class ProductController {
         status,
       } = req.body;
 
+      const currentUser = (req as any).user;
+      const isAdmin =
+        currentUser?.email === "admin@system.com" ||
+        currentUser?.roleCode === "SUPER_ADMIN" ||
+        currentUser?.roleCode === "ADMIN";
+
+      if (!isAdmin && currentUser && this.getStoreByUserIdUseCase) {
+        const store = await this.getStoreByUserIdUseCase.execute(currentUser.id);
+        if (!store) {
+          res.status(403).json({
+            success: false,
+            message: "Bạn chưa đăng ký gian hàng nên không thể cập nhật sản phẩm.",
+          });
+          return;
+        }
+        if (store.status !== "ACTIVE") {
+          res.status(403).json({
+            success: false,
+            message: "Gian hàng của bạn chưa được duyệt hoặc đang bị khóa.",
+          });
+          return;
+        }
+        const existingProduct = await this.getProductByIdUseCase.execute(String(id));
+        if (!existingProduct || existingProduct.storeId !== store.id) {
+          res.status(403).json({
+            success: false,
+            message: "Bạn không có quyền cập nhật sản phẩm này.",
+          });
+          return;
+        }
+      }
+
       const product = await this.updateProductUseCase.execute({
         id: String(id),
         categoryId,

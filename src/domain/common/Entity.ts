@@ -1,4 +1,3 @@
-// import { randomUUID } from "node:crypto";
 export abstract class Entity {
   protected readonly _id: string;
   protected readonly _createdAt: Date;

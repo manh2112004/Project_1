@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { redisClient } from "../../infrastructure/cache/redisClient";
 import { RedisCartRepository } from "../../infrastructure/repositories/cart/RedisCartRepository";
+import { AppDataSource } from "../../infrastructure/database/data-source";
+import { ProductOrmEntity } from "../../infrastructure/database/entities/ProductOrmEntity";
+import { TypeOrmProductRepository } from "../../infrastructure/repositories/product/TypeOrmProductRepository";
 
 // Import các Use Cases
 import { AddToCartUseCase } from "../../application/use-cases/cart/AddToCartUseCase";
@@ -18,9 +21,11 @@ export const createCartRouter = (): Router => {
 
   // 1. Khởi tạo Repository ở tầng Infrastructure (dùng Redis làm bộ nhớ lưu trữ)
   const cartRepository = new RedisCartRepository(redisClient);
+  const productOrmRepository = AppDataSource.getRepository(ProductOrmEntity);
+  const productRepository = new TypeOrmProductRepository(productOrmRepository);
 
-  // 2. Khởi tạo tất cả Use Cases ở tầng Application (Inject cartRepository)
-  const addToCartUseCase = new AddToCartUseCase(cartRepository);
+  // 2. Khởi tạo tất cả Use Cases ở tầng Application (Inject cartRepository, productRepository)
+  const addToCartUseCase = new AddToCartUseCase(cartRepository, productRepository);
   const getCartUseCase = new GetCartUseCase(cartRepository);
   const updateCartItemQuantityUseCase = new UpdateCartItemQuantityUseCase(
     cartRepository,

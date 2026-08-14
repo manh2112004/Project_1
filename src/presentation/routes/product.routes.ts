@@ -112,7 +112,6 @@ export const productRouter = (): Router => {
   productRouterInstance.put(
     "/:id",
     authenticate,
-    authorize("UPDATE_PRODUCT"),
     (req, res) => productController.update(req, res),
   );
   productRouterInstance.delete(

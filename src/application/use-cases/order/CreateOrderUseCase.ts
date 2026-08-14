@@ -79,6 +79,18 @@ export class CreateOrderUseCase {
             );
           }
 
+          if (dbProduct.status === "INACTIVE") {
+            throw new Error(
+              `Sản phẩm "${dbProduct.name}" hiện đang tạm ngưng kinh doanh, không thể đặt mua.`,
+            );
+          }
+
+          if (dbProduct.store && (dbProduct.store.isOnVacation || dbProduct.store.status !== "ACTIVE")) {
+            throw new Error(
+              `Gian hàng "${dbProduct.store.name}" đang trong thời gian tạm nghỉ bán, không thể xử lý đơn hàng cho sản phẩm "${dbProduct.name}".`,
+            );
+          }
+
           // Xác định giá hiện tại (ưu tiên giá khuyến mãi nếu có)
           const currentPrice = dbProduct.discountPrice ?? dbProduct.price;
 
