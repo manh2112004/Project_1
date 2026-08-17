@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { EventEmitter2 } from "eventemitter2";
 import { AppDataSource } from "../../infrastructure/database/data-source";
 import { ConversationOrmEntity } from "../../infrastructure/database/entities/ConversationOrmEntity";
 import { MessageOrmEntity } from "../../infrastructure/database/entities/MessageOrmEntity";
@@ -8,6 +9,11 @@ import { TypeOrmConversationRepository } from "../../infrastructure/repositories
 import { TypeOrmMessageRepository } from "../../infrastructure/repositories/message/TypeOrmMessageRepository";
 import { TypeOrmStoreRepository } from "../../infrastructure/repositories/store/TypeOrmStoreRepository";
 import { TypeOrmUserRepository } from "../../infrastructure/repositories/user/TypeOrmUserRepository";
+
+// Import Socket Realtime & Event Handler
+import { SocketIoAdapter } from "../../infrastructure/realtime/SocketIoAdapter";
+import { MessageSentSocketHandler } from "../../application/event-handlers/MessageSentSocketHandler";
+import { MessageSentEvent } from "../../domain/events/MessageSentEvent";
 
 // Import các Use Cases
 import { CreateOrGetConversationUseCase } from "../../application/use-cases/chat/CreateOrGetConversationUseCase";
@@ -20,6 +26,16 @@ import { authenticate } from "../middlewares/authenticate";
 
 export const createChatRouter = (): Router => {
   const chatRouter = Router();
+
+  // 1. Khởi tạo EventBus và Socket Handler
+  const eventBus = new EventEmitter2();
+  const socketAdapter = SocketIoAdapter.getInstance();
+  const messageSentSocketHandler = new MessageSentSocketHandler(socketAdapter);
+
+  // 2. Lắng nghe sự kiện MessageSentEvent từ EventBus -> Phát Socket Realtime
+  eventBus.on("MessageSentEvent", (event: MessageSentEvent) => {
+    messageSentSocketHandler.handle(event);
+  });
 
   const conversationOrmRepo = AppDataSource.getRepository(ConversationOrmEntity);
   const messageOrmRepo = AppDataSource.getRepository(MessageOrmEntity);
@@ -42,6 +58,7 @@ export const createChatRouter = (): Router => {
   const sendMessageUseCase = new SendMessageUseCase(
     conversationRepository,
     messageRepository,
+    eventBus,
   );
   const getMessagesByConversationIdUseCase = new GetMessagesByConversationIdUseCase(
     messageRepository,

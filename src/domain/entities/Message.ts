@@ -119,6 +119,8 @@ export class Message extends AggregateRoot {
         message.content,
         message.senderId,
         message.senderType,
+        message.metadata,
+        message.attachments,
       ),
     );
 

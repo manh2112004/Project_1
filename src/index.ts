@@ -20,8 +20,18 @@ import { createPaymentRouter } from "./presentation/routes/payment.routes";
 import { createStoreRouter } from "./presentation/routes/store.routes";
 import { createStoreAddressRouter } from "./presentation/routes/store-address.routes";
 import { createChatRouter } from "./presentation/routes/chat.routes";
+import { SocketIoAdapter } from "./infrastructure/realtime/SocketIoAdapter";
+import { ChatSocketGateway } from "./presentation/sockets/ChatSocketGateway";
+import http from "http";
+import { Server } from "socket.io";
 const startServer = async () => {
   const app = express();
+  //tạo HTTP Server chính thức
+  const httpServer = http.createServer(app);
+  // 1. Khởi tạo Socket.io Adapter
+  const io = await SocketIoAdapter.getInstance().initialize(httpServer);
+  // 2. Kích hoạt Socket Gateway
+  new ChatSocketGateway(io).register();
   app.use(cors());
   app.use(express.json());
   await initializeDatabase();
@@ -43,11 +53,10 @@ const startServer = async () => {
   app.use("/api/stores", createStoreRouter());
   app.use("/api/store-addresses", createStoreAddressRouter());
   app.use("/api/chat", createChatRouter());
-  app.listen(config.port, () => {
+  httpServer.listen(config.port, () => {
     console.log(
-      ` Server đang chạy thành công tại: http://localhost:${config.port}`,
+      `Server đang chạy thành công tại: http://localhost:${config.port}`,
     );
   });
 };
-
 startServer();
