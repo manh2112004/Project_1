@@ -60,6 +60,7 @@ export class Message extends AggregateRoot {
     this._readAt = props.readAt || null;
     this._isRecalled = props.isRecalled || false;
   }
+
   public get content(): string {
     return this._isRecalled ? "Tin nhắn đã được thu hồi" : this._content;
   }
@@ -121,11 +122,13 @@ export class Message extends AggregateRoot {
         message.senderType,
         message.metadata,
         message.attachments,
+        message.type,
       ),
     );
 
     return message;
   }
+
   public markAsRead(readAt: Date = new Date()): void {
     if (!this._isRead) {
       this._isRead = true;

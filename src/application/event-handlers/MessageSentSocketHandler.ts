@@ -14,7 +14,10 @@ export class MessageSentSocketHandler {
         conversationId: event.conversationId,
         senderId: event.senderId,
         senderType: event.senderType,
+        type: event.type,
         content: event.content,
+        attachments: event.attachments,
+        metadata: event.metadata,
         createdAt: event.occurredOn.toISOString(),
       },
     );

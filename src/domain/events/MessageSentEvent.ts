@@ -1,6 +1,7 @@
 import { IDomainEvent } from "../common/IDomainEvent";
-import { SenderType } from "../constant/MessageEnums";
+import { MessageType, SenderType } from "../constant/MessageEnums";
 import { MessageAttachment } from "../entities/Message";
+
 export class MessageSentEvent implements IDomainEvent {
   public readonly occurredOn: Date;
 
@@ -12,6 +13,7 @@ export class MessageSentEvent implements IDomainEvent {
     public readonly senderType: SenderType,
     public readonly metadata?: any,
     public readonly attachments?: MessageAttachment[],
+    public readonly type?: MessageType,
   ) {
     this.occurredOn = new Date();
   }

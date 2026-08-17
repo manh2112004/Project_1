@@ -1,5 +1,8 @@
 import dotenv from "dotenv";
+import path from "path";
 
+// Đọc trực tiếp file .env.production của bạn
+dotenv.config({ path: path.resolve(process.cwd(), ".env.production") });
 dotenv.config();
 
 export const config = {
