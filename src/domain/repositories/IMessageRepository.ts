@@ -9,5 +9,6 @@ export interface IMessageRepository {
     before?: Date,
   ): Promise<Message[]>;
   markAllAsRead(conversationId: string, readerId: string): Promise<void>;
+  getUnreadCount(conversationId: string, userId: string): Promise<number>;
   delete(id: string): Promise<void>;
 }

@@ -1,13 +1,17 @@
 import { IConversationRepository } from "../../../domain/repositories/IConversationRepository";
 import { IMessageRepository } from "../../../domain/repositories/IMessageRepository";
+import { IStoreRepository } from "../../../domain/repositories/IStoreRepository";
 import { Message } from "../../../domain/entities/Message";
 import { SendMessageDto, MessageResponseDto } from "../../dtos/chat/MessageDto";
+import { MessageSentEvent } from "../../../domain/events/MessageSentEvent";
 import { EventEmitter2 } from "eventemitter2";
+
 export class SendMessageUseCase {
   constructor(
     private readonly conversationRepository: IConversationRepository,
     private readonly messageRepository: IMessageRepository,
     private eventBus: EventEmitter2,
+    private readonly storeRepository?: IStoreRepository,
   ) {}
 
   async execute(dto: SendMessageDto): Promise<MessageResponseDto> {
@@ -21,7 +25,18 @@ export class SendMessageUseCase {
       );
     }
 
-    // 2. Tạo tin nhắn mới (phát bắn MessageSentEvent)
+    // 2. Tìm thông tin chủ cửa hàng (để bắn socket về channel cá nhân user:{storeOwnerId})
+    let storeOwnerId: string | undefined;
+    if (this.storeRepository) {
+      try {
+        const store = await this.storeRepository.findById(conversation.storeId);
+        if (store) {
+          storeOwnerId = store.userId;
+        }
+      } catch (e) {}
+    }
+
+    // 3. Tạo tin nhắn mới
     const message = Message.send({
       conversationId: dto.conversationId,
       senderId: dto.senderId,
@@ -32,22 +47,34 @@ export class SendMessageUseCase {
       metadata: dto.metadata,
     });
 
-    // 3. Lưu tin nhắn vào DB
+    // 4. Lưu tin nhắn vào DB
     const savedMessage = await this.messageRepository.save(message);
 
-    // 4. Cập nhật thông tin tin nhắn mới nhất vào phòng chat
+    // 5. Cập nhật thông tin tin nhắn mới nhất vào phòng chat
     conversation.updateLastMessage(
       savedMessage.content,
       savedMessage.createdAt,
     );
     await this.conversationRepository.save(conversation);
-    //RÚT SỰ KIỆN RA VÀ PHÁT THANH!
-    const domainEvents = message.pullDomainEvents();
-    for (const event of domainEvents) {
-      //Ném bức thư lên không trung, ai muốn nghe thì nghe
-      this.eventBus.emit(event.constructor.name, event);
-    }
-    // 5. Trả về Response DTO
+
+    // 6. Rút bỏ các event cũ và phát sự kiện MessageSentEvent mới có chứa customerId & storeOwnerId
+    message.pullDomainEvents();
+    const sentEvent = new MessageSentEvent(
+      savedMessage.conversationId,
+      savedMessage.id,
+      savedMessage.content,
+      savedMessage.senderId,
+      savedMessage.senderType,
+      savedMessage.metadata,
+      savedMessage.attachments,
+      savedMessage.type,
+      conversation.customerId,
+      storeOwnerId,
+    );
+
+    this.eventBus.emit(sentEvent.constructor.name, sentEvent);
+
+    // 7. Trả về Response DTO
     return {
       id: savedMessage.id,
       conversationId: savedMessage.conversationId,

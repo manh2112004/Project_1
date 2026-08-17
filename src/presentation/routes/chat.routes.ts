@@ -54,11 +54,13 @@ export const createChatRouter = (): Router => {
     conversationRepository,
     storeRepository,
     userRepository,
+    messageRepository,
   );
   const sendMessageUseCase = new SendMessageUseCase(
     conversationRepository,
     messageRepository,
     eventBus,
+    storeRepository,
   );
   const getMessagesByConversationIdUseCase = new GetMessagesByConversationIdUseCase(
     messageRepository,

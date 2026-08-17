@@ -2,7 +2,7 @@ import { IMessageRepository } from "../../../domain/repositories/IMessageReposit
 import { MessageResponseDto } from "../../dtos/chat/MessageDto";
 
 export class GetMessagesByConversationIdUseCase {
-  constructor(private readonly messageRepository: IMessageRepository) {}
+  constructor(private readonly messageRepository: IMessageRepository) { }
 
   async execute(params: {
     conversationId: string;

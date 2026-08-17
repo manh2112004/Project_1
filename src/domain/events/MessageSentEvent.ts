@@ -14,6 +14,8 @@ export class MessageSentEvent implements IDomainEvent {
     public readonly metadata?: any,
     public readonly attachments?: MessageAttachment[],
     public readonly type?: MessageType,
+    public readonly customerId?: string,
+    public readonly storeOwnerId?: string,
   ) {
     this.occurredOn = new Date();
   }

@@ -3,10 +3,10 @@ import jwt from "jsonwebtoken";
 import { config } from "../../infrastructure/config/env";
 
 export class ChatSocketGateway {
-  constructor(private readonly io: Server) {}
+  constructor(private readonly io: Server) { }
 
   public register(): void {
-    //hàm đăng ký Middleware của Socket.IO
+    // hàm đăng ký Middleware của Socket.IO
     this.io.use((socket: Socket, next) => {
       const token =
         socket.handshake.auth?.token || socket.handshake.headers?.authorization;
@@ -25,7 +25,7 @@ export class ChatSocketGateway {
       }
     });
 
-    //  Lắng nghe các sự kiện WS
+    // Lắng nghe các sự kiện WS
     this.io.on("connection", (socket: Socket) => {
       const userId = socket.data.user.id;
 
@@ -54,6 +54,17 @@ export class ChatSocketGateway {
             });
         },
       );
+
+      // Báo hiệu đã đọc tin nhắn trong phòng chat
+      socket.on("chat:read_messages", (data: { conversationId: string }) => {
+        socket
+          .to(`conversation:${data.conversationId}`)
+          .emit("chat:messages_read", {
+            conversationId: data.conversationId,
+            readByUserId: userId,
+            readAt: new Date().toISOString(),
+          });
+      });
 
       socket.on("disconnect", () => {
         console.log(`User ${userId} disconnected socket ${socket.id}`);

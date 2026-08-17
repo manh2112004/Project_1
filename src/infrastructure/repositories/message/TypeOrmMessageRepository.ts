@@ -1,11 +1,11 @@
-import { Repository, LessThan } from "typeorm";
+import { Repository, LessThan, Not } from "typeorm";
 import { Message } from "../../../domain/entities/Message";
 import { IMessageRepository } from "../../../domain/repositories/IMessageRepository";
 import { MessageOrmEntity } from "../../database/entities/MessageOrmEntity";
 import { MessageType, SenderType } from "../../../domain/constant/MessageEnums";
 
 export class TypeOrmMessageRepository implements IMessageRepository {
-  constructor(private readonly ormRepository: Repository<MessageOrmEntity>) {}
+  constructor(private readonly ormRepository: Repository<MessageOrmEntity>) { }
 
   async save(message: Message): Promise<Message> {
     const ormEntity = this.toOrm(message);
@@ -39,10 +39,24 @@ export class TypeOrmMessageRepository implements IMessageRepository {
   }
 
   async markAllAsRead(conversationId: string, readerId: string): Promise<void> {
-    await this.ormRepository.update(
-      { conversationId, isRead: false },
-      { isRead: true, readAt: new Date() },
-    );
+    await this.ormRepository
+      .createQueryBuilder()
+      .update(MessageOrmEntity)
+      .set({ isRead: true, readAt: new Date() })
+      .where("conversationId = :conversationId", { conversationId })
+      .andWhere("senderId != :readerId", { readerId })
+      .andWhere("isRead = false")
+      .execute();
+  }
+
+  async getUnreadCount(conversationId: string, userId: string): Promise<number> {
+    return await this.ormRepository.count({
+      where: {
+        conversationId,
+        isRead: false,
+        senderId: Not(userId),
+      },
+    });
   }
 
   async delete(id: string): Promise<void> {

@@ -1,4 +1,5 @@
 import { IConversationRepository } from "../../../domain/repositories/IConversationRepository";
+import { IMessageRepository } from "../../../domain/repositories/IMessageRepository";
 import { IStoreRepository } from "../../../domain/repositories/IStoreRepository";
 import { IUserRepository } from "../../../domain/repositories/IUserRepository";
 import { Conversation } from "../../../domain/entities/Conversation";
@@ -9,6 +10,7 @@ export class GetMyConversationsUseCase {
     private readonly conversationRepository: IConversationRepository,
     private readonly storeRepository: IStoreRepository,
     private readonly userRepository: IUserRepository,
+    private readonly messageRepository?: IMessageRepository,
   ) {}
 
   async execute(params: { userId?: string; storeId?: string }): Promise<ConversationResponseDto[]> {
@@ -45,11 +47,18 @@ export class GetMyConversationsUseCase {
       return timeB - timeA;
     });
 
-    // 4. Map DTO và bổ sung tên/ảnh của Store và Customer
+    // 4. Map DTO và bổ sung tên/ảnh của Store, Customer và trạng thái unread
     const result: ConversationResponseDto[] = await Promise.all(
       allConversations.map(async (conv) => {
         let storeInfo: { id: string; name: string; logo?: string | null } | null = null;
         let customerInfo: { id: string; fullName: string; avatarUrl?: string | null } | null = null;
+        let unreadCount = 0;
+
+        if (this.messageRepository) {
+          try {
+            unreadCount = await this.messageRepository.getUnreadCount(conv.id, userId);
+          } catch (e) {}
+        }
 
         try {
           const storeEntity = await this.storeRepository.findById(conv.storeId);
@@ -79,6 +88,8 @@ export class GetMyConversationsUseCase {
           storeId: conv.storeId,
           lastMessageContent: conv.lastMessageContent,
           lastMessageAt: conv.lastMessageAt ? conv.lastMessageAt.toISOString() : null,
+          hasUnread: unreadCount > 0,
+          unreadCount: unreadCount,
           createdAt: conv.createdAt.toISOString(),
           updatedAt: conv.updatedAt.toISOString(),
           store: storeInfo,
