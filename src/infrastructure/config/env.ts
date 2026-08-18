@@ -11,8 +11,8 @@ export const config = {
     host: process.env.DB_HOST || "localhost",
     port: parseInt(process.env.DB_PORT || "5432", 10),
     username: process.env.DB_USER || "postgres",
-    password: process.env.DB_PASSWORD || "Manh2004",
-    database: process.env.DB_NAME || "adagroup",
+    password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "",
     logging: process.env.DB_LOGGING === "true",
   },
   cloudinary: {
@@ -21,9 +21,8 @@ export const config = {
     apiSecret: process.env.CLOUDINARY_API_SECRET || "",
   },
   jwt: {
-    secret: process.env.JWT_SECRET || "fallback_secret_cho_luc_dev",
-    refreshSecret:
-      process.env.JWT_REFRESH_SECRET || "super-secret-refresh-key-54321",
+    secret: process.env.JWT_SECRET as string,
+    refreshSecret: process.env.JWT_REFRESH_SECRET as string,
   },
   payos: {
     clientId: process.env.PAYOS_CLIENT_ID || "",
