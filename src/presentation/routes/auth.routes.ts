@@ -17,6 +17,7 @@ import { ForgotPasswordUseCase } from "../../application/use-cases/auth/ForgotPa
 import { VerifyResetOtpUseCase } from "../../application/use-cases/auth/VerifyResetOtpUseCase";
 import { ResetPasswordUseCase } from "../../application/use-cases/auth/ResetPasswordUseCase";
 import { AuthController } from "../controllers/AuthController";
+import { loginRateLimiter, registerRateLimiter } from "../middlewares/rateLimiter";
 
 export const authRouter = (): Router => {
   const router = Router();
@@ -98,10 +99,10 @@ export const authRouter = (): Router => {
   router.post("/send-otp", (req, res) => authController.sendOtp(req, res));
 
   // Endpoint Đăng ký tài khoản Khách hàng public
-  router.post("/register", (req, res) => authController.register(req, res));
+  router.post("/register", registerRateLimiter, (req, res) => authController.register(req, res));
 
   // Endpoint Đăng nhập tài khoản
-  router.post("/login", (req, res) => authController.login(req, res));
+  router.post("/login", loginRateLimiter, (req, res) => authController.login(req, res));
 
   // Endpoint Làm mới Access Token
   router.post("/refresh-token", (req, res) =>

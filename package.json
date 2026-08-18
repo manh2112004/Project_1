@@ -21,6 +21,8 @@
     "seed:race:staging": "dotenv -e .env.staging -- tsx src/infrastructure/database/cli/seedRaceCondition.ts",
     "test:load": "tsx src/infrastructure/database/cli/testRaceCondition.ts",
     "test:load:staging": "dotenv -e .env.staging -- tsx src/infrastructure/database/cli/testRaceCondition.ts",
+    "test:ratelimit": "tsx src/infrastructure/database/cli/testRateLimiter.ts",
+    "test:ratelimit:staging": "dotenv -e .env.staging -- tsx src/infrastructure/database/cli/testRateLimiter.ts",
     "typeorm": "tsx ./node_modules/typeorm/cli.js -d src/infrastructure/database/data-source.ts",
     "typeorm:staging": "dotenv -e .env.staging -- tsx ./node_modules/typeorm/cli.js -d src/infrastructure/database/data-source.ts",
     "typeorm:prod": "dotenv -e .env.production -- tsx ./node_modules/typeorm/cli.js -d src/infrastructure/database/data-source.ts"
@@ -44,6 +46,7 @@
     "multer": "^2.2.0",
     "nodemailer": "^9.0.4",
     "pg": "^8.22.0",
+    "rate-limiter-flexible": "^11.2.0",
     "reflect-metadata": "^0.2.2",
     "socket.io": "^4.8.3",
     "swagger-jsdoc": "^6.3.0",

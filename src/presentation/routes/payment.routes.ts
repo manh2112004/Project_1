@@ -8,6 +8,7 @@ import { PayOSService } from "../../infrastructure/services/PayOSService";
 import { MarkOrderAsPaidUseCase } from "../../application/use-cases/order/MarkOrderAsPaidUseCase";
 import { PaymentController } from "../controllers/PaymentController";
 import { authenticate } from "../middlewares/authenticate";
+import { paymentRateLimiter } from "../middlewares/rateLimiter";
 
 export const createPaymentRouter = (): Router => {
   const router = Router();
@@ -31,8 +32,8 @@ export const createPaymentRouter = (): Router => {
     markOrderAsPaidUseCase
   );
 
-  // Endpoint tạo link thanh toán PayOS (yêu cầu đăng nhập)
-  router.post("/payos/create-link", authenticate, (req, res) =>
+  // Endpoint tạo link thanh toán PayOS (yêu cầu đăng nhập + rate limit)
+  router.post("/payos/create-link", authenticate, paymentRateLimiter, (req, res) =>
     paymentController.createPayOSPaymentLink(req, res)
   );
 

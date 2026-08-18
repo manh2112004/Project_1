@@ -22,6 +22,7 @@ import { createStoreAddressRouter } from "./presentation/routes/store-address.ro
 import { createChatRouter } from "./presentation/routes/chat.routes";
 import { SocketIoAdapter } from "./infrastructure/realtime/SocketIoAdapter";
 import { ChatSocketGateway } from "./presentation/sockets/ChatSocketGateway";
+import { globalRateLimiter } from "./presentation/middlewares/rateLimiter";
 import http from "http";
 import { Server } from "socket.io";
 const startServer = async () => {
@@ -34,6 +35,10 @@ const startServer = async () => {
   new ChatSocketGateway(io).register();
   app.use(cors());
   app.use(express.json());
+
+  // 3. Áp dụng Global Rate Limiter (200 requests/phút/IP) cho toàn bộ API
+  app.use("/api", globalRateLimiter);
+
   await initializeDatabase();
   setupSwagger(app);
   app.use("/api/auth", authRouter());

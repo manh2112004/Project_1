@@ -22,6 +22,7 @@ import { AdminCancelOrderUseCase } from "../../application/use-cases/order/Admin
 import { OrderController } from "../controllers/OrderController";
 import { authenticate } from "../middlewares/authenticate";
 import { authorize } from "../middlewares/authorize";
+import { orderRateLimiter } from "../middlewares/rateLimiter";
 
 export const createOrderRouter = (): Router => {
   const router = Router();
@@ -83,8 +84,8 @@ export const createOrderRouter = (): Router => {
   // Yêu cầu xác thực Token JWT cho tất cả các API Order
   router.use(authenticate);
 
-  // Endpoints Khách hàng
-  router.post("/checkout", (req, res) => orderController.checkout(req, res));
+  // Endpoints Khách hàng (Rate limit 3 đơn / phút)
+  router.post("/checkout", orderRateLimiter, (req, res) => orderController.checkout(req, res));
   router.get("/me", (req, res) => orderController.getMyOrders(req, res));
   router.get("/:id", (req, res) => orderController.getById(req, res));
   router.put("/:id/cancel", (req, res) => orderController.cancelMyOrder(req, res));
