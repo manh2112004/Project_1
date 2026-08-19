@@ -1,5 +1,7 @@
 import { ICategoryRepository } from "../../../domain/repositories/ICategoryRepository";
 import { CategoryResponseDto } from "../../dtos/category/CreateCategoryDto";
+import { DomainError } from "../../../domain/errors/DomainError";
+import { Result, ok } from "../../../domain/common/Result";
 
 export interface PaginatedCategoriesResponse {
   categories: CategoryResponseDto[];
@@ -10,19 +12,22 @@ export interface PaginatedCategoriesResponse {
     limit: number;
   };
 }
+
 export class GetCategoriesPaginatedUseCase {
   constructor(private readonly categoryRepository: ICategoryRepository) {}
+
   async execute(
     page: number,
     limit: number,
-    search?: string,
-  ): Promise<PaginatedCategoriesResponse> {
+    search?: string
+  ): Promise<Result<PaginatedCategoriesResponse, DomainError>> {
     const validPage = page > 0 ? page : 1;
     const validLimit = limit > 0 ? limit : 1;
     const { categories, totalCount } =
       await this.categoryRepository.findAndCount(validPage, validLimit, search);
     const totalPages = Math.ceil(totalCount / validLimit);
-    return {
+
+    return ok({
       categories: categories.map((category) => ({
         id: category.id,
         parentId: category.parentId,
@@ -40,6 +45,6 @@ export class GetCategoriesPaginatedUseCase {
         currentPage: validPage,
         limit: validLimit,
       },
-    };
+    });
   }
 }
