@@ -6,6 +6,8 @@ import { GetCategoryByIdUseCase } from "../../application/use-cases/category/Get
 import { GetAllCategoryUseCase } from "../../application/use-cases/category/GetAllCategoryUseCase";
 import { DomainError } from "../../domain/errors/DomainError";
 import { GetCategoriesPaginatedUseCase } from "../../application/use-cases/category/GetCategoriesPaginatedUseCase";
+import { HttpResponseMapper } from "../mappers/HttpResponseMapper";
+
 export class CategoryController {
   constructor(
     private readonly createCategoryUseCase: CreateCategoryUseCase,
@@ -17,29 +19,27 @@ export class CategoryController {
   ) { }
 
   async create(req: Request, res: Response): Promise<void> {
-    try {
-      const { name, slug, parentId, description, image, isActive } = req.body;
+    const { name, slug, parentId, description, image, isActive } = req.body;
 
-      const category = await this.createCategoryUseCase.execute({
-        name,
-        slug,
-        parentId,
-        description,
-        image,
-        isActive,
-      });
+    const result = await this.createCategoryUseCase.execute({
+      name,
+      slug,
+      parentId,
+      description,
+      image,
+      isActive,
+    });
 
-      res.status(201).json({
-        success: true,
-        message: "Tạo danh mục thành công.",
-        data: category,
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message || "Lỗi xử lý tạo danh mục.",
-      });
+    if (result.isFailure) {
+      HttpResponseMapper.sendError(res, result.error);
+      return;
     }
+
+    res.status(201).json({
+      success: true,
+      message: "Tạo danh mục thành công.",
+      data: result.value,
+    });
   }
   async update(req: Request, res: Response): Promise<void> {
     try {

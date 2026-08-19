@@ -23,8 +23,8 @@ import { createChatRouter } from "./presentation/routes/chat.routes";
 import { SocketIoAdapter } from "./infrastructure/realtime/SocketIoAdapter";
 import { ChatSocketGateway } from "./presentation/sockets/ChatSocketGateway";
 import { globalRateLimiter } from "./presentation/middlewares/rateLimiter";
+import { safetyNetErrorHandler } from "./presentation/middlewares/safetyNetErrorHandler";
 import http from "http";
-import { Server } from "socket.io";
 const startServer = async () => {
   const app = express();
   //tạo HTTP Server chính thức
@@ -58,10 +58,23 @@ const startServer = async () => {
   app.use("/api/stores", createStoreRouter());
   app.use("/api/store-addresses", createStoreAddressRouter());
   app.use("/api/chat", createChatRouter());
+
+  // Lưới an toàn bẫy lỗi 500 cuối Express pipeline
+  app.use(safetyNetErrorHandler);
+
   httpServer.listen(config.port, () => {
     console.log(
       `Server đang chạy thành công tại: http://localhost:${config.port}`,
     );
   });
 };
+
+process.on("unhandledRejection", (reason: Error) => {
+  console.error("Unhandled Rejection:", reason);
+});
+
+process.on("uncaughtException", (error: Error) => {
+  console.error("Uncaught Exception:", error);
+});
+
 startServer();

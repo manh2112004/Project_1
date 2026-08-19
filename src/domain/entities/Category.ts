@@ -1,5 +1,7 @@
-import { error } from 'console';
 import { randomUUID } from 'crypto';
+import { Result, ok, fail } from '../common/Result';
+import { DomainError } from '../errors/DomainError';
+
 export interface CategoryProps {
   id?: string;
   parentId?: string | null;
@@ -12,6 +14,7 @@ export interface CategoryProps {
   updatedAt?: Date;
   deletedAt?: Date | null;
 }
+
 export interface UpdateCategoryProps {
   id: string;
   name?: string;
@@ -54,16 +57,16 @@ export class Category {
     description?: string | null;
     image?: string | null;
     isActive?: boolean;
-  }): Category {
+  }): Result<Category, DomainError> {
     if (!props.name || props.name.trim().length === 0) {
-      throw new Error('Tên danh mục (name) không được để trống.');
+      return fail(new DomainError('Tên danh mục (name) không được để trống.', 400, 'INVALID_CATEGORY_NAME'));
     }
 
     const generatedSlug = props.slug && props.slug.trim().length > 0
       ? Category.slugify(props.slug)
       : Category.slugify(props.name);
 
-    return new Category({
+    const category = new Category({
       name: props.name.trim(),
       slug: generatedSlug,
       parentId: props.parentId || null,
@@ -71,27 +74,34 @@ export class Category {
       image: props.image || null,
       isActive: props.isActive !== undefined ? props.isActive : true,
     });
+
+    return ok(category);
   }
-  public update(props: UpdateCategoryProps): void {
-    if (props.name != undefined) {
+
+  public update(props: UpdateCategoryProps): Result<void, DomainError> {
+    if (props.name !== undefined) {
       if (!props.name || props.name.trim().length === 0) {
-        throw new Error("Tên danh mục không được để trống")
+        return fail(new DomainError('Tên danh mục không được để trống', 400, 'INVALID_CATEGORY_NAME'));
       }
       this.name = props.name.trim();
     }
-    if(props.slug!==undefined){
-      this.slug=props.slug.trim().length>0?Category.slugify(props.slug):Category.slugify(this.name)
+    if (props.slug !== undefined) {
+      this.slug = props.slug.trim().length > 0 ? Category.slugify(props.slug) : Category.slugify(this.name);
     }
     this.parentId = props.parentId !== undefined ? props.parentId : this.parentId;
     this.description = props.description !== undefined ? props.description : this.description;
     this.image = props.image !== undefined ? props.image : this.image;
     this.isActive = props.isActive !== undefined ? props.isActive : this.isActive;
     this.updatedAt = new Date();
+
+    return ok(undefined);
   }
+
   public delete(): void {
     this.deletedAt = new Date();
     this.isActive = false;
   }
+
   public static slugify(text: string): string {
     return text
       .toLowerCase()
@@ -103,3 +113,4 @@ export class Category {
       .replace(/\s+/g, '-');
   }
 }
+
