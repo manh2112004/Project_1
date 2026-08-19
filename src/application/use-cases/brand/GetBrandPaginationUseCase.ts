@@ -1,5 +1,7 @@
 import { IBrandRepository } from "../../../domain/repositories/IBrandRepository";
 import { BrandResponseDto } from "../../dtos/brand/createBrandDto";
+import { DomainError } from "../../../domain/errors/DomainError";
+import { Result, ok } from "../../../domain/common/Result";
 
 export interface PaginatedBrandsResponse {
   brands: BrandResponseDto[];
@@ -10,22 +12,25 @@ export interface PaginatedBrandsResponse {
     limit: number;
   };
 }
+
 export class GetBrandsPaginatedUseCase {
   constructor(private readonly brandRepository: IBrandRepository) {}
+
   async execute(
     page: number,
     limit: number,
-    search?: string,
-  ): Promise<PaginatedBrandsResponse> {
+    search?: string
+  ): Promise<Result<PaginatedBrandsResponse, DomainError>> {
     const validPage = page > 0 ? page : 1;
     const validLimit = limit > 0 ? limit : 1;
     const { brands, totalCount } = await this.brandRepository.findAndCount(
       validPage,
       validLimit,
-      search,
+      search
     );
     const totalPages = Math.ceil(totalCount / validLimit);
-    return {
+
+    return ok({
       brands: brands.map((brand) => ({
         id: brand.id,
         name: brand.name,
@@ -41,6 +46,6 @@ export class GetBrandsPaginatedUseCase {
         currentPage: validPage,
         limit: validLimit,
       },
-    };
+    });
   }
 }
