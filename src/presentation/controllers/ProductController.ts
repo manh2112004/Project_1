@@ -8,6 +8,7 @@ import { GetProductsPaginatedUseCase } from "../../application/use-cases/product
 import { GetProductsByStoreIdUseCase } from "../../application/use-cases/product/GetProductsByStoreIdUseCase";
 import { GetStoreByUserIdUseCase } from "../../application/use-cases/store/StoreQueryUseCases";
 import { sseManager } from "../../infrastructure/services/SseManager";
+import { HttpResponseMapper } from "../mappers/HttpResponseMapper";
 
 export class ProductController {
   constructor(
@@ -19,7 +20,7 @@ export class ProductController {
     private readonly getProductsPaginatedUseCase: GetProductsPaginatedUseCase,
     private readonly getProductsByStoreIdUseCase?: GetProductsByStoreIdUseCase,
     private readonly getStoreByUserIdUseCase?: GetStoreByUserIdUseCase,
-  ) {}
+  ) { }
 
   async create(req: Request, res: Response): Promise<void> {
     try {
@@ -64,7 +65,7 @@ export class ProductController {
         targetStoreId = store.id;
       }
 
-      const product = await this.createProductUseCase.execute({
+      const result = await this.createProductUseCase.execute({
         storeId: targetStoreId,
         categoryId,
         brandId,
@@ -78,17 +79,20 @@ export class ProductController {
         discountPrice,
         status,
       });
-      sseManager.sendToAll("product:created", product);
+
+      if (result.isFailure) {
+        HttpResponseMapper.sendError(res, result.error);
+        return;
+      }
+
+      sseManager.sendToAll("product:created", result.value);
       res.status(201).json({
         success: true,
         message: "Tạo sản phẩm thành công.",
-        data: product,
+        data: result.value,
       });
     } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message || "Lỗi xử lý tạo sản phẩm.",
-      });
+      HttpResponseMapper.sendError(res, error);
     }
   }
 
@@ -141,7 +145,7 @@ export class ProductController {
         }
       }
 
-      const product = await this.updateProductUseCase.execute({
+      const result = await this.updateProductUseCase.execute({
         id: String(id),
         categoryId,
         brandId,
@@ -156,16 +160,18 @@ export class ProductController {
         status,
       });
 
+      if (result.isFailure) {
+        HttpResponseMapper.sendError(res, result.error);
+        return;
+      }
+
       res.status(200).json({
         success: true,
         message: "Cập nhật sản phẩm thành công.",
-        data: product,
+        data: result.value,
       });
     } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message || "Lỗi xử lý cập nhật sản phẩm.",
-      });
+      HttpResponseMapper.sendError(res, error);
     }
   }
 
