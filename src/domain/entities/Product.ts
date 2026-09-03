@@ -1,4 +1,6 @@
 import { randomUUID } from "crypto";
+import { Result, ok, fail } from "../common/Result";
+import { DomainError } from "../errors/DomainError";
 
 export interface ProductProps {
     id?: string;
@@ -88,22 +90,22 @@ export class Product {
         price: number;
         discountPrice?: number | null;
         status?: string;
-    }): Product {
+    }): Result<Product, DomainError> {
         if (!props.name || props.name.trim().length === 0) {
-            throw new Error("Tên sản phẩm không được để trống.");
+            return fail(new DomainError("Tên sản phẩm không được để trống.", 400, "INVALID_PRODUCT_NAME"));
         }
         if (!props.sku || props.sku.trim().length === 0) {
-            throw new Error("Mã SKU không được để trống.");
+            return fail(new DomainError("Mã SKU không được để trống.", 400, "INVALID_PRODUCT_SKU"));
         }
         if (props.price < 0) {
-            throw new Error("Giá sản phẩm không được nhỏ hơn 0.");
+            return fail(new DomainError("Giá sản phẩm không được nhỏ hơn 0.", 400, "INVALID_PRODUCT_PRICE"));
         }
         if (props.discountPrice !== undefined && props.discountPrice !== null) {
             if (props.discountPrice < 0) {
-                throw new Error("Giá khuyến mãi không được nhỏ hơn 0.");
+                return fail(new DomainError("Giá khuyến mãi không được nhỏ hơn 0.", 400, "INVALID_DISCOUNT_PRICE"));
             }
             if (props.discountPrice > props.price) {
-                throw new Error("Giá khuyến mãi không được lớn hơn giá gốc sản phẩm.");
+                return fail(new DomainError("Giá khuyến mãi không được lớn hơn giá gốc sản phẩm.", 400, "INVALID_DISCOUNT_PRICE"));
             }
         }
 
@@ -111,7 +113,7 @@ export class Product {
             ? Product.slugify(props.slug)
             : Product.slugify(props.name);
 
-        return new Product({
+        const product = new Product({
             storeId: props.storeId,
             categoryId: props.categoryId,
             brandId: props.brandId,
@@ -125,12 +127,14 @@ export class Product {
             discountPrice: props.discountPrice,
             status: props.status,
         });
+
+        return ok(product);
     }
 
-    public update(props: UpdateProductProps): void {
+    public update(props: UpdateProductProps): Result<void, DomainError> {
         if (props.name !== undefined) {
             if (!props.name.trim()) {
-                throw new Error("Tên sản phẩm không được để trống.");
+                return fail(new DomainError("Tên sản phẩm không được để trống.", 400, "INVALID_PRODUCT_NAME"));
             }
             this.name = props.name.trim();
         }
@@ -143,24 +147,25 @@ export class Product {
         }
         if (props.price !== undefined) {
             if (props.price < 0) {
-                throw new Error("Giá sản phẩm không được nhỏ hơn 0.");
+                return fail(new DomainError("Giá sản phẩm không được nhỏ hơn 0.", 400, "INVALID_PRODUCT_PRICE"));
             }
             this.price = props.price;
         }
         if (props.discountPrice !== undefined) {
             if (props.discountPrice !== null) {
                 if (props.discountPrice < 0) {
-                    throw new Error("Giá khuyến mãi không được nhỏ hơn 0.");
+                    return fail(new DomainError("Giá khuyến mãi không được nhỏ hơn 0.", 400, "INVALID_DISCOUNT_PRICE"));
                 }
-                if (props.discountPrice > this.price) {
-                    throw new Error("Giá khuyến mãi không được lớn hơn giá gốc sản phẩm.");
+                const targetPrice = props.price !== undefined ? props.price : this.price;
+                if (props.discountPrice > targetPrice) {
+                    return fail(new DomainError("Giá khuyến mãi không được lớn hơn giá gốc sản phẩm.", 400, "INVALID_DISCOUNT_PRICE"));
                 }
             }
             this.discountPrice = props.discountPrice;
         }
         if (props.sku !== undefined) {
             if (!props.sku.trim()) {
-                throw new Error("Mã SKU không được để trống.");
+                return fail(new DomainError("Mã SKU không được để trống.", 400, "INVALID_PRODUCT_SKU"));
             }
             this.sku = props.sku.trim().toUpperCase();
         }
@@ -172,6 +177,8 @@ export class Product {
         this.thumbnail = props.thumbnail !== undefined ? props.thumbnail : this.thumbnail;
         this.status = props.status !== undefined ? props.status : this.status;
         this.updatedAt = new Date();
+
+        return ok(undefined);
     }
 
     public delete(): void {
@@ -189,4 +196,4 @@ export class Product {
             .trim()
             .replace(/\s+/g, '-');
     }
-}
+}

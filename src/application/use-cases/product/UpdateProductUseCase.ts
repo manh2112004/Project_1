@@ -3,6 +3,13 @@ import { IProductRepository } from "../../../domain/repositories/IProductReposit
 import { ICategoryRepository } from "../../../domain/repositories/ICategoryRepository";
 import { IBrandRepository } from "../../../domain/repositories/IBrandRepository";
 import { UpdateProductDto, UpdateProductResponse } from "../../dtos/product/UpdateProductDto";
+import { Result, ok, fail } from "../../../domain/common/Result";
+import { DomainError } from "../../../domain/errors/DomainError";
+import { ProductNotFoundError } from "../../../domain/errors/product/ProductNotFoundError";
+import { CategoryNotFoundError } from "../../../domain/errors/category/CategoryNotFoundError";
+import { BrandNotFoundError } from "../../../domain/errors/Brand/BrandNotFoundError";
+import { DuplicateSkuError } from "../../../domain/errors/product/DuplicateSkuError";
+import { DuplicateProductSlugError } from "../../../domain/errors/product/DuplicateProductSlugError";
 
 export class UpdateProductUseCase {
     constructor(
@@ -11,18 +18,18 @@ export class UpdateProductUseCase {
         private readonly brandRepository: IBrandRepository
     ) { }
 
-    async execute(dto: UpdateProductDto): Promise<UpdateProductResponse> {
+    async execute(dto: UpdateProductDto): Promise<Result<UpdateProductResponse, DomainError>> {
         // 1. Tìm sản phẩm hiện tại
         const product = await this.productRepository.findById(dto.id);
         if (!product) {
-            throw new Error(`Sản phẩm với ID '${dto.id}' không tồn tại.`);
+            return fail(new ProductNotFoundError(dto.id));
         }
 
         // 2. Nếu cập nhật Danh mục (Category), kiểm tra sự tồn tại
         if (dto.categoryId !== undefined) {
             const category = await this.categoryRepository.findById(dto.categoryId);
             if (!category) {
-                throw new Error(`Danh mục với ID '${dto.categoryId}' không tồn tại.`);
+                return fail(new CategoryNotFoundError(dto.categoryId));
             }
         }
 
@@ -30,7 +37,7 @@ export class UpdateProductUseCase {
         if (dto.brandId !== undefined) {
             const brand = await this.brandRepository.findById(dto.brandId);
             if (!brand) {
-                throw new Error(`Thương hiệu với ID '${dto.brandId}' không tồn tại.`);
+                return fail(new BrandNotFoundError(dto.brandId));
             }
         }
 
@@ -40,7 +47,7 @@ export class UpdateProductUseCase {
             if (normalizedSku !== product.sku) {
                 const existingSku = await this.productRepository.findBySku(normalizedSku);
                 if (existingSku && existingSku.id !== product.id) {
-                    throw new Error(`Mã SKU '${normalizedSku}' đã được sử dụng.`);
+                    return fail(new DuplicateSkuError(normalizedSku));
                 }
             }
         }
@@ -58,12 +65,12 @@ export class UpdateProductUseCase {
         if (targetSlug !== product.slug) {
             const existingSlug = await this.productRepository.findBySlug(targetSlug);
             if (existingSlug && existingSlug.id !== product.id) {
-                throw new Error(`Slug '${targetSlug}' đã được sử dụng.`);
+                return fail(new DuplicateProductSlugError(targetSlug));
             }
         }
 
-        // 6. Cập nhật trạng thái thực thể Domain
-        product.update({
+        // 6. Cập nhật trạng thái thực thể Domain (Domain tự validate quy tắc bất biến & trả về Result)
+        const updateResult = product.update({
             id: dto.id,
             storeId: dto.storeId,
             categoryId: dto.categoryId,
@@ -79,11 +86,15 @@ export class UpdateProductUseCase {
             status: dto.status,
         });
 
+        if (updateResult.isFailure) {
+            return fail(updateResult.error);
+        }
+
         // 7. Lưu xuống DB
         const savedProduct = await this.productRepository.save(product);
 
-        // 8. Trả về Response DTO
-        return {
+        // 8. Trả về Response DTO dạng ok()
+        return ok({
             id: savedProduct.id,
             storeId: savedProduct.storeId,
             categoryId: savedProduct.categoryId,
@@ -99,6 +110,7 @@ export class UpdateProductUseCase {
             status: savedProduct.status,
             createdAt: savedProduct.createdAt.toISOString(),
             updatedAt: savedProduct.updatedAt.toISOString(),
-        };
+        });
     }
 }
+
