@@ -25,11 +25,11 @@ export class SocketIoAdapter implements IRealtimeNotifier {
     });
 
     // Kết nối Redis Adapter bằng IORedis
-    if (config.redis.host) {
-      const pubClient = new Redis({
-        host: config.redis.host,
-        port: config.redis.port,
-        password: config.redis.password,
+    if (config.redis.url) {
+      const pubClient = new Redis(config.redis.url, {
+        tls: {
+          rejectUnauthorized: false,
+        },
       });
 
       // 2. Tạo subClient
