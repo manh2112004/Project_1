@@ -8,6 +8,7 @@
     "build": "tsc",
     "test": "vitest run",
     "seed": "tsx src/infrastructure/database/cli/seedData.ts",
+    "admin:create": "tsx src/infrastructure/database/cli/createAdmin.ts",
     "seed:permissions": "tsx src/infrastructure/database/cli/seedPermissions.ts",
     "seed:permissions:staging": "dotenv -e .env.staging -- tsx src/infrastructure/database/cli/seedPermissions.ts",
     "clean:carts": "tsx src/infrastructure/database/cli/cleanEmptyRedisCarts.ts",

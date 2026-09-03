@@ -1,12 +1,12 @@
 import Redis from "ioredis";
-
-export const redisClient = new Redis({
-  host: process.env.REDIS_HOST || "localhost",
-  port: Number(process.env.REDIS_PORT) || 6379,
-  password: process.env.REDIS_PASSWORD || undefined,
-  db: 0,
+const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
+export const redisClient = new Redis(redisUrl, {
+  // Bắt buộc có phần này vì Upstash yêu cầu bảo mật TLS (rediss://)
+  tls: {
+    rejectUnauthorized: false,
+  },
   retryStrategy(times) {
-    return Math.min(times * 50, 2000); // Thử lại sau mỗi 2 giây
+    return Math.min(times * 50, 2000);
   },
 });
 
