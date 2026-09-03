@@ -8,11 +8,7 @@ dotenv.config();
 export const config = {
   port: parseInt(process.env.PORT || "3000", 10),
   db: {
-    host: process.env.DB_HOST || "localhost",
-    port: parseInt(process.env.DB_PORT || "5432", 10),
-    username: process.env.DB_USER || "postgres",
-    password: process.env.DB_PASSWORD || "",
-    database: process.env.DB_NAME || "",
+    url: process.env.DATABASE_URL || "",
     logging: process.env.DB_LOGGING === "true",
   },
   cloudinary: {
@@ -30,8 +26,6 @@ export const config = {
     checksumKey: process.env.PAYOS_CHECKSUM_KEY || "",
   },
   redis: {
-    host: process.env.REDIS_HOST || "127.0.0.1",
-    port: parseInt(process.env.REDIS_PORT || "6379", 10),
-    password: process.env.REDIS_PASSWORD || "",
+    url: process.env.REDIS_URL || "",
   },
 };

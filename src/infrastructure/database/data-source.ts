@@ -21,13 +21,12 @@ import { MessageOrmEntity } from "./entities/MessageOrmEntity";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
-  host: config.db.host,
-  port: config.db.port,
-  username: config.db.username,
-  password: config.db.password,
-  database: config.db.database,
-  // synchronize: true, // Tự động đồng bộ schema khi dev (Chỉ dùng trong môi trường dev)
+  url: config.db.url || process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
   logging: config.db.logging,
+  synchronize: true,
   entities: [
     CategoryOrmEntity,
     BrandOrmEntity,
